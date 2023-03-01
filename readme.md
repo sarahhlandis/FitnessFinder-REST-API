@@ -1,4 +1,4 @@
-# FitnessFinder: A RESTful API 
+# FitnessFinder: A RESTful API hello
 
 ### [gitHub Repository](https://github.com/sarahhlandis/FitnessFinder-REST-API)
 
