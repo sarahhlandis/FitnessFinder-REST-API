@@ -1,4 +1,4 @@
-# FitnessFinder: A RESTful API hello
+# FitnessFinder: A RESTful API
 
 ### [gitHub Repository](https://github.com/sarahhlandis/FitnessFinder-REST-API)
 
@@ -22,13 +22,28 @@ This API uses postgres
 ## Endpoints:
 
 ## Entity Relationship Diagram:
-![erd](/docs/preliminary_erd.png)
+![erd](/docs/prelim_erd.png)
 
 ## Third Party Services:
 
 ## Models:
 
 ## Database Relations:
+The FitnessFinder API intends to implement its database relations based off the project's preliminary entity relationship diagram. 
+
+The relations can be elaborated as follows:
+
+*Facilities* can be only one ```facility_type```. They can also run 0 to multiple promotions (optional). A facility can have many *amenities* as shown thru the join table (```facility_amenities```). A facility can have only one address.
+
+*Facility_types* can be attributed to 0 or many *facilities*. Facility types has the option to have 0 facilities as this is a prepopulated attribute in the database, in which is not required to have any facilities linked to at time of seeding.
+
+*Promotions* can be run at one facility (if the facility is independent) however if the facility is a chain, the promotion can be held across their locations.
+
+*Amenities* has a many-to-many relationship with *facilities*, meaning many amenities can be present at many facilities - this relationship is noted thru the join table ```facility_amenities```.
+
+*Addresses* has a one-to-one relationship with ```facilities``` as only one address can be attributed to one facility location. ```Addresses``` has a one relationship with ```post_codes``` as an address can only have one ```post_code```.
+
+*Post_codes* has an atleast-one to one relationship with ```addresses```. A postcode can have multiple addresses within that post_code, and an address must only have one ```post_code```. The relationship is atleast-one because there will always be atleast one address with that specific post_code if the address is entered into the database.
 
 ## Project Management:
 ![project_start](/docs/trello_board1.png)
