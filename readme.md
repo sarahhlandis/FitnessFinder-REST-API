@@ -22,7 +22,7 @@ This API uses postgres
 ## Endpoints:
 
 ## Entity Relationship Diagram:
-![erd](/docs/prelim_erd.png)
+![erd](/docs/final_erd.png)
 
 ## Third Party Services:
 
@@ -33,17 +33,43 @@ The FitnessFinder API intends to implement its database relations based off the 
 
 The relations can be elaborated as follows:
 
-*Facilities* can be only one ```facility_type```. They can also run 0 to multiple promotions (optional). A facility can have many *amenities* as shown thru the join table (```facility_amenities```). A facility can have only one address.
+*Facilities* can be only one ```facility_type```. They can also run 0 to multiple promotions (optional). A facility can have many *amenities* as shown thru the join table ```facility_amenities```. A facility can have only one address.
 
-*Facility_types* can be attributed to 0 or many *facilities*. Facility types has the option to have 0 facilities as this is a prepopulated attribute in the database, in which is not required to have any facilities linked to at time of seeding.
+*Facility_types* can be attributed to 0 or many ```facilities```. Facility types has the option to have 0 facilities as this is a prepopulated attribute in the database, in which is not required to have any facilities linked to at time of seeding.
 
-*Promotions* can be run at one facility (if the facility is independent) however if the facility is a chain, the promotion can be held across their locations.
+*Promotions* can be run at one facility (if the facility is independent) however if the facility is a chain, the promotion can be held across their multiple locations.
 
 *Amenities* has a many-to-many relationship with *facilities*, meaning many amenities can be present at many facilities - this relationship is noted thru the join table ```facility_amenities```.
 
-*Addresses* has a one-to-one relationship with ```facilities``` as only one address can be attributed to one facility location. ```Addresses``` has a one relationship with ```post_codes``` as an address can only have one ```post_code```.
+*Addresses* has a one-to-one relationship with ```facilities``` as only one address can be attributed to one facility location. ```Addresses``` has a one-to-one relationship with ```post_codes``` as an address can only have one ```post_code```.
 
-*Post_codes* has an atleast-one to one relationship with ```addresses```. A postcode can have multiple addresses within that post_code, and an address must only have one ```post_code```. The relationship is atleast-one because there will always be atleast one address with that specific post_code if the address is entered into the database.
+*Post_codes* has an atleast-one-to-one relationship with ```addresses```. A postcode can have multiple addresses within that post_code, and an address must only have one ```post_code```. The relationship is atleast-one from post_codes because there will always be atleast one address with that specific post_code if the address is entered into the database.
 
-## Project Management:
+## Project Management
+### Development
+When building an api that intends to store data thru a connected database, it's important to build logically. The first step I did was create the entity relationship diagram (ERD) so that I could better understand the relationships between all the desired tracked entities. In doing so, I would be better poised to begin coding the relevant models, schemas, routes etc once I knew the exact relations I wanted to build.
+
+I started out with the below entity relationship diagram:
+>
+![original_ERD](/docs/og_erd.png)
+>
+but once I realized that I wanted a bit more complexity to show facilities and their related promotions, I needed to bulk out the original ERD, below.
+>
+![second_ERD](/docs/second_erd.png)
+>
+Upon further dissection of what I wanted to achieve and in order to ensure an adequate level of data normalization (third normal form), the *final* ERD evolved to the below:
+>
+![final_ERD](/docs/final_erd.png)
+>
+Between the second ERD and the final ERD, there was duplication with post_codes as a foreign key in the ```facilities``` table - there waas also an entity relation to match however this was removed prior to the image capture. 
+>
+The ```addresses``` table was also filled out appropriately with relevant attributes to ensure more specificity upon data entries which in turn allows for more precise filtering options.
+>
+Lastly, a space for ```owners``` to input their mobile number in case of a 2-factor authentication being released in future api updates.
+>
+### Planning
+To better assist me in my project planning, I chose to use **Trello** to manage my tasks. The below is the beginning trello board that I started with.
+>
 ![project_start](/docs/trello_board1.png)
+>
+I chose to lay out my tasks with *preliminary* referring to environment and app structure setup, and *tasks* referring to coding actions. I labelled them with colors to signify the difficulty/time I estimated it would take, with green being quick and relatively easy, orange taking incrementally more time and requiring a little more thinking, and lastly red to symbolize tasks that required some hours. I then accordingly assigned due dates for all of them to keep on track. 
