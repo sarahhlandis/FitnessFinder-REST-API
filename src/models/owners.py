@@ -23,7 +23,7 @@ class Owner(db.Model):
             raise ValueError("Password must be at least 8 characters long. Please try again.")
         return password
     
-    @validates ('mobile')
+    @validates('mobile')
     def validate_mobile(self, key, mobile):
         if len(mobile) != 10:
             raise ValueError('Phone number must be 10 digits long.')
