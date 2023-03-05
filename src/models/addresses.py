@@ -8,6 +8,7 @@ class PostCode(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     
     # Add the rest of the attributes (columns). 
+    street_num: db.Column(db.Integer(10), nullable=False)
     street: db.Column(db.String(50), nullable=False)
     suburb: db.Column(db.String(50), nullable=False)
     state: db.Column(db.String(3), nullable=False)
