@@ -2,20 +2,16 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 
-# app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:@dmin1@localhost/fitnessfinder_db'
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:@dmin1@localhost/fitnessfinder_db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# db = SQLAlchemy(app)
+db = SQLAlchemy(app)
+ma = Marshmallow(app)
 
 # @app.route("/")
 # def index():
 #     pass
-
-db = SQLAlchemy()
-ma = Marshmallow()
 
 def create_app():
     # using a list comprehension and multiple assignment 

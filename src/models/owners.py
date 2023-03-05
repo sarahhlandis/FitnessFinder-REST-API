@@ -9,7 +9,7 @@ class Owner(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     
     # Add the rest of the attributes (columns). 
-    email: db.Column(db.String(25), nullable=False, unique=True)
+    email: db.Column(db.Email(50), nullable=False, unique=True)
     password: db.Column(db.String(15), nullable=False)
     mobile: db.Column(db.String(10), nullable=False, unique=True)
     
