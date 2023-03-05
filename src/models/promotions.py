@@ -12,7 +12,7 @@ class Promotion(db.Model):
     end_date: db.Column(db.Date(), nullable=False, default=None)
     discount: db.Column(db.Integer(), nullable=False)
     
-    # Add the foreign keys in the Facilities model
+    # Add the foreign keys in the Promotions model
     facility_id = db.Column(db.Integer, db.ForeignKey("facilities.id"), nullable=False)
 
     # Add the relationships directions to other models

@@ -10,7 +10,7 @@ class PostCode(db.Model):
     # Add the rest of the attributes (columns). 
     post_code: db.Column(db.String(4), nullable=False)
     
-    # Add the foreign keys in the Facilities model - none
+    # Add the foreign keys in the Post_codes model - none
 
     # Add the relationships directions to other models
     addresses = db.relationship('Address', backref='post_code')

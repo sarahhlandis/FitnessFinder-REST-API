@@ -1,5 +1,5 @@
 from datetime import time
-from .facility_amenities import facility_amenities
+from models import facility_amenities
 from app import db
 
 class Facility(db.Model):
@@ -26,7 +26,7 @@ class Facility(db.Model):
     facility_type = db.relationship('FacilityType', backref='facility')
 
     # Set up join table with amenities
-    amenities = db.relationship('Amenity', secondary=facility_amenities, backref=db.backref('facilities', lazy='dynamic'))
+    amenities = db.relationship('Amenity', secondary=facility_amenities, lazy='subquery', backref=db.backref('facilities', lazy='dynamic'))
 
 
     def __init__(self, phone_num, independent, business_name, hours_of_op, facility_type_id, owner_id, address_id, post_code_id):
