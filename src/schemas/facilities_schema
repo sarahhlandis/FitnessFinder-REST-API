@@ -15,7 +15,10 @@ class FacilitySchema(ma.SQLAlchemyAutoSchema):
     independent=fields.Boolean(required=True)
     phone_num = fields.String(required=True, validate=[Length(equal=10), validate.Regexp('^\d+$')])
     hours_of_op = fields.Time(required=True, format='%H:%M')
+
     # foreign keys below
+    # Owner will not explicitly set these, so they can be false in order to be populated
+    # by the db
     owner_id = fields.Integer(required=False)
     facility_type_id = fields.Integer(required=False)
     address_id = fields.Integer(required=False)

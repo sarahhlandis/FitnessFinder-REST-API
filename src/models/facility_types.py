@@ -10,7 +10,7 @@ class FacilityType(db.Model):
     # Add the rest of the attributes (columns). 
     facility_type: db.Column(db.String(25), nullable=False, default=None)
     
-    # Add the foreign keys in the Facilities model - none
+    # Add the foreign keys in the Facility_types model - none
 
     # Add the relationships directions to other models
     facilities = db.relationship('Facility', backref='facility_type', lazy=True)

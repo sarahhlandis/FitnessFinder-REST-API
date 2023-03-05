@@ -13,7 +13,7 @@ class PostCode(db.Model):
     suburb: db.Column(db.String(50), nullable=False)
     state: db.Column(db.String(3), nullable=False)
 
-    # Add the foreign keys in the Facilities model - none
+    # Add the foreign keys in the Addresses model - none
     post_code_id = db.Column(db.Integer, db.ForeignKey("post_codes.id"), nullable=False)
 
     # Add the relationships directions to other models
