@@ -16,6 +16,7 @@ class AddressSchema(ma.SQLAlchemyAutoSchema):
     state = fields.String(required=True, validate=Length(equal=3))
     # foreign keys below
     post_code = fields.Integer(required=True, validate=[Length(equal=4), validate.Regexp('^\d+$')])
+    post_code_id = fields.Integer(dump_only=True, missing=None)
 
     @validates_schema
     def validate_state(self, data):
