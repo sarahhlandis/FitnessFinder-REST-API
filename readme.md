@@ -73,3 +73,12 @@ To better assist me in my project planning, I chose to use **Trello** to manage 
 ![project_start](/docs/trello_board1.png)
 >
 I chose to lay out my tasks with *preliminary* referring to environment and app structure setup, and *tasks* referring to coding actions. I labelled them with colors to signify the difficulty/time I estimated it would take, with green being quick and relatively easy, orange taking incrementally more time and requiring a little more thinking, and lastly red to symbolize tasks that required some hours. I then accordingly assigned due dates for all of them to keep on track. 
+
+![cli_checklist](/docs/trello_cli.png)
+![controller_checklist](/docs/trello_controller.png)
+![models_checklist](/docs/trello_models.png)
+
+
+![project_start](/docs/trello_board2.png)
+Progress as of March 5
+
