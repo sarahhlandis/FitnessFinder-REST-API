@@ -15,7 +15,7 @@ class Facility(db.Model):
     hours_of_op: db.Column(db.Time(), nullable=False)
 
     # Add the foreign keys in the Facilities model
-    facility_type_id = db.Column(db.Integer, db.ForeignKey("facility_types.id"), nullable=False)
+    facility_type_id = db.Column(db.Integer, db.ForeignKey("facility_types.id"), nullable=True, ondelete='SETNULL')
     owner_id = db.Column(db.Integer, db.ForeignKey("owners.id"), nullable=False)
     address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
     
@@ -29,7 +29,7 @@ class Facility(db.Model):
     amenities = db.relationship('Amenity', secondary=facility_amenities, lazy='subquery', backref=db.backref('facilities', lazy='dynamic'))
 
 
-    def __init__(self, phone_num, independent, business_name, hours_of_op, facility_type_id, owner_id, address_id, post_code_id):
+    def __init__(self, phone_num, independent, business_name, hours_of_op, facility_type_id, owner_id, address_id):
         self.phone_num = phone_num
         self.independent = independent
         self.business_name = business_name

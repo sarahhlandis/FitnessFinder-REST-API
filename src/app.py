@@ -1,8 +1,10 @@
 from flask import Flask, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
+from models.facility_types import FacilityType
+from app import db
 
-
+facilities = Blueprint('facilities', __name__, url_prefix="/facilities")
 auth = Blueprint('auth', __name__, url_prefix="/auth")
 owners = Blueprint('owners', __name__, url_prefix='/owners')
 
@@ -26,5 +28,22 @@ def create_app():
     # register and activate blueprints
     app.register_blueprint(auth)
     app.register_blueprint(owners)
+    app.register_blueprint(facilities)
 
     return app
+
+def init_db():
+# add default facility types to the database
+    facility_types = [
+        FacilityType(name="Pilates Studio"),
+        FacilityType(name="Gym"),
+        FacilityType(name="Wellness Center"),
+        FacilityType(name="Yoga Studio"),
+        FacilityType(name="Dance Studio"),
+        FacilityType(name="Athletic Club"),
+        FacilityType(name="Boxing Gym"),
+        # add more facility types as needed
+        ]
+    with db.session.begin():
+        db.session.add_all(facility_types)
+

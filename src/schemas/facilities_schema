@@ -1,9 +1,7 @@
-from marshmallow import fields
+from marshmallow import fields, validates_schema, validate, validates, ValidationError, Length
 from app import ma
 from models.facilities import Facility
-from sqlalchemy import orm
 from datetime import time
-from marshmallow import validates_schema, validate, validates, ValidationError, Length
 
 class FacilitySchema(ma.SQLAlchemyAutoSchema):
     class Meta:

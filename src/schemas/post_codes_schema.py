@@ -1,8 +1,6 @@
 from marshmallow import fields
 from app import ma
 from models.post_codes import PostCode
-from sqlalchemy import orm
-from datetime import time
 from marshmallow import validates_schema, validate, ValidationError, Length
 
 class PostCodeSchema(ma.SQLAlchemyAutoSchema):
