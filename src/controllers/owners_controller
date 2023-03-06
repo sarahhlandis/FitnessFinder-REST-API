@@ -1,0 +1,68 @@
+from flask import Blueprint, jsonify, request
+from app import db, bcrypt
+from models.owners import Owner
+from schemas.owners_schema import OwnerSchema
+from datetime import timedelta
+from flask_jwt_extended import create_access_token
+from werkzeug.security import generate_password_hash, check_password_hash
+from app import auth, owners
+
+# authentication for existing user 
+@auth.route("/login", methods=["POST"])
+def auth_login():
+    # Load the owner data from the request
+    owner_fields = OwnerSchema().load(request.json)
+
+    # Find the owner in the database by email
+    owner = Owner.query.filter_by(email=owner_fields["email"]).first()
+
+    # If the owner is not found or the password is incorrect, return an error
+    if not owner or not bcrypt.check_password_hash(owner.password, owner_fields["password"]):
+        return jsonify({"error": "Invalid email or password"}), 401
+
+    # Generate an access token with the owner's ID as the identity
+    expiry = timedelta(days=1)
+    access_token = create_access_token(identity=owner.email, expires_delta=expiry)
+
+    # Return the access token to the owner
+    return jsonify({"access_token": access_token}), 200
+
+
+# if no existing user, register as a new user
+@owners.route('/', methods=['POST'])
+def register():
+    # get email and password from request
+    email = request.json.get('email')
+    password = request.json.get('password')
+
+    # Check if owner already exists in the database
+    existing_owner = Owner.query.filter_by(email=email).first()
+
+    if existing_owner is not None:
+        # if the owner is found, check the password
+        if existing_owner.check_password(password):
+            # generate an access token and return it
+            access_token = create_access_token(identity=email)
+            return jsonify({'access_token': access_token}), 200
+        else:
+            # if the password is incorrect, return an error message
+            return jsonify({'error': 'Invalid password. Please try again'}), 401
+    else:
+        # if the owner is not found, ask if they want to register as a new owner
+        register = request.json.get('register')
+        if register:
+            # create a new owner with the provided email and password
+            owner = Owner(email=email)
+            # Hash the owner's password before saving to the database
+            hashed_password = generate_password_hash(password, method='sha256')
+            owner.set_password(hashed_password)
+            # add and commit new owner to db
+            db.session.add(owner)
+            db.session.commit()    
+            # generate an access token and return it
+            access_token = create_access_token(identity=email)
+            return jsonify({'access_token': access_token}), 200
+        else:
+            # if the owner doesn't want to register, return an error message
+            return jsonify({'error': 'Invalid email'}), 401
+

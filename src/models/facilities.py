@@ -7,7 +7,7 @@ class Facility(db.Model):
     __tablename__= "facilities"
     # Set the primary key, we need to define that each attribute is also a 
     # column in the db table, remember "db" is the object we created in the previous step.
-    id = db.Column(db.Integer,primary_key=True)
+    id = db.Column(db.Integer,primary_key=True,autoincrement=True)
     # Add the rest of the attributes (columns). 
     phone_num = db.Column(db.String(10), nullable=False)
     independent = db.Column(db.Boolean(), nullable=False)
