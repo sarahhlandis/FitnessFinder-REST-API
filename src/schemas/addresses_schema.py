@@ -1,8 +1,7 @@
 from app import ma, db
 from models.addresses import Address
 from models.post_codes import PostCode
-from marshmallow import fields, validates_schema, validate, ValidationError
-from marshmallow.validate import Length, Regexp
+from marshmallow import fields, validates_schema, validate, ValidationError, Length
 
 class AddressSchema(ma.SQLAlchemyAutoSchema):
     class Meta:

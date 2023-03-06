@@ -1,8 +1,7 @@
 from marshmallow import fields, validate, validates_schema, ValidationError
 from flask_marshmallow import Marshmallow
 from marshmallow.validate import Length
-from models import Owner
-from sqlalchemy import orm
+from models.owners import Owner
 
 ma = Marshmallow()
 
