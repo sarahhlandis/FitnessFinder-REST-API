@@ -1,7 +1,5 @@
-from app import db
-from flask import Flask
-from flask import Blueprint
-from app import bcrypt
+from app import db, bcrypt
+from flask import Flask, Blueprint
 from datetime import date
 from models.facilities import Facility
 from models.owners import Owner

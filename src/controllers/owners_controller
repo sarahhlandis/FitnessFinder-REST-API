@@ -1,24 +1,34 @@
-from flask import Blueprint, jsonify, request
-from app import db, bcrypt
+from flask import jsonify, request, g, redirect, url_for
+from app import db, bcrypt, auth, owners
+from auth import jwt_required
+from marshmallow import fields
 from models.owners import Owner
+from models.facilities import Facility
 from schemas.owners_schema import OwnerSchema
 from datetime import timedelta
 from flask_jwt_extended import create_access_token
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import auth, owners
 
-# authentication for existing user 
-@auth.route("/login", methods=["POST"])
+
+# authenticate an existing owner 
+@auth.route("/login/secure", methods=["POST"])
 def auth_login():
-    # Load the owner data from the request
-    owner_fields = OwnerSchema().load(request.json)
+    # Define the owner schema fields
+    owner_schema = OwnerSchema()
+    email = fields.Email(required=True)
+    password = fields.String(required=True)
+    owner_schema.load(request.json)
 
     # Find the owner in the database by email
-    owner = Owner.query.filter_by(email=owner_fields["email"]).first()
+    owner = Owner.query.filter_by(email=email).first()
+
+    # If the owner is not found, redirect to the register route
+    if not owner:
+        return redirect(url_for('owners.register'))
 
     # If the owner is not found or the password is incorrect, return an error
-    if not owner or not bcrypt.check_password_hash(owner.password, owner_fields["password"]):
-        return jsonify({"error": "Invalid email or password"}), 401
+    if not bcrypt.check_password_hash(owner.password, password):
+        return jsonify({"error": "Invalid password, please try again."}), 401
 
     # Generate an access token with the owner's ID as the identity
     expiry = timedelta(days=1)
@@ -28,12 +38,17 @@ def auth_login():
     return jsonify({"access_token": access_token}), 200
 
 
-# if no existing user, register as a new user
-@owners.route('/', methods=['POST'])
+# Register a new owner
+@owners.route('/register/secure', methods=['POST'])
 def register():
-    # get email and password from request
-    email = request.json.get('email')
-    password = request.json.get('password')
+    # Load and validate the request data using OwnerSchema
+    owner_schema = OwnerSchema()
+    owner_fields = owner_schema.load(request.json)
+
+    # Extract the validated data from the fields dictionary
+    email = owner_fields['email']
+    password = owner_fields['password']
+    mobile = owner_fields['mobile']
 
     # Check if owner already exists in the database
     existing_owner = Owner.query.filter_by(email=email).first()
@@ -49,16 +64,18 @@ def register():
             return jsonify({'error': 'Invalid password. Please try again'}), 401
     else:
         # if the owner is not found, ask if they want to register as a new owner
-        register = request.json.get('register')
+        register = owner_fields.get('register')
+
         if register:
-            # create a new owner with the provided email and password
-            owner = Owner(email=email)
+            # create a new owner with the provided email, password, and mobile
+            owner = Owner(email=email, mobile=mobile)
             # Hash the owner's password before saving to the database
             hashed_password = generate_password_hash(password, method='sha256')
             owner.set_password(hashed_password)
+
             # add and commit new owner to db
             db.session.add(owner)
-            db.session.commit()    
+            db.session.commit()
             # generate an access token and return it
             access_token = create_access_token(identity=email)
             return jsonify({'access_token': access_token}), 200
@@ -66,3 +83,65 @@ def register():
             # if the owner doesn't want to register, return an error message
             return jsonify({'error': 'Invalid email'}), 401
 
+        
+
+
+
+# retrieve details of a logged-in owner
+@owners.route('/<int:owner_id>/secure', methods=['GET'])
+@jwt_required()
+def get_owner(owner_id):
+    owner = Owner.query.get(owner_id)
+    # if owner does not exist
+    if not owner:
+        return jsonify({'error': 'Owner not found'}), 404
+    
+    # if owner's email does not match existing email in database
+    if owner.email != g.get('identity'):
+        return jsonify({'error': 'Unauthorized access'}), 401
+    # return owner details that match
+    return jsonify({'owner': OwnerSchema().dump(owner)}), 200
+
+
+
+# update details of a logged-in owner
+@owners.route('/<int:owner_id>/secure', methods=['PUT'])
+@jwt_required()
+def update_owner(owner_id):
+    owner = Owner.query.get(owner_id)
+    # if owner does not exist
+    if not owner:
+        return jsonify({'error': 'Owner not found'}), 404
+    
+    # if owner's email does not match existing email in database
+    if owner.email != g.get('identity'):
+        return jsonify({'error': 'Unauthorized access'}), 401
+    
+    # load the owner schema fields from the request data
+    owner_schema = OwnerSchema()
+    owner_fields = owner_schema.load(request.json)
+
+    # update the owner details with the loaded data
+    owner.name = owner_fields.get('name', owner.name)
+    owner.email = owner_fields.get('email', owner.email)
+    owner.mobile = owner_fields.get('mobile', owner.mobile)
+    # commit changes to database
+    db.session.commit()
+    return jsonify({'message': 'Owner information updated successfully'}), 200
+
+
+
+# delete account of a logged-in owner
+@owners.route('/account/secure', methods=['DELETE'])
+@jwt_required()
+def delete_account(owner_id):
+    owner = Owner.query.get(owner_id)
+    # Delete all facilities associated with the owner's account
+    Facility.query.filter_by(owner_id=owner_id).delete()
+
+    # Delete the owner's account
+    owner = Owner.query.get(owner_id)
+    db.session.delete(owner)
+    db.session.commit()
+
+    return jsonify({'message': 'Account deleted successfully'})

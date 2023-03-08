@@ -70,6 +70,33 @@ When choosing a database management system, it's important to deduce the main pr
 ### Benefits:
 
 ## Endpoints:
+### Owner endpoints -
+blueprint: ```owners = Blueprint('owners', __name__, url_prefix='/owners')```
+blueprint: ```auth = Blueprint('auth', __name__, url_prefix="/login")```
+- authenticate an existing owner 
+```@auth.route("/login", methods=["POST"])```
+- register a new owner
+```@owners.route('/register', methods=['POST'])```
+- retrieve details of a logged-in owner
+```@owners.route('/<int:owner_id>', methods=['GET'])```
+- update details of a logged-in owner
+```@owners.route('/<int:owner_id>', methods=['PUT'])```
+- delete account of logged-in owner
+```@owners.route('/<int:owner_id>', methods=['DELETE'])```
+
+
+### Facility endpoints - 
+blueprint: ```facilities = Blueprint('facilities', __name__, url_prefix="/facilities")```
+- Retrieving all owned facilities of a specific owner ```(GET /owners/<owner_id>/facilities)```
+- Retrieving a specific owned facility of a specific owner ```(GET /owners/<owner_id>/facilities/<facility_id>)```
+- Creating a new owned facility for a specific owner ```(POST /owners/<owner_id>/facilities)```
+- Updating an owned facility for a specific owner ```(PUT /owners/<owner_id>/facilities/<facility_id>)```
+- Deleting an owned facility for a specific owner ```(DELETE /owners/<owner_id>/facilities/<facility_id>)```
+
+### Amenities endpoints - 
+- Update an owned facility's amenities as a logged-in owner ```@facilities.route('/<int:facility_id>/amenities', methods=['PUT'])```
+
+
 
 
 ## Entity Relationship Diagram:
@@ -78,6 +105,8 @@ When choosing a database management system, it's important to deduce the main pr
 ## Third Party Services:
 
 ## Models:
+
+
 
 ## Database Relations:
 The FitnessFinder API intends to implement its database relations based off the project's preliminary entity relationship diagram. 
@@ -133,3 +162,16 @@ I chose to lay out my tasks with *preliminary* referring to environment and app 
 ![project_start](/docs/trello_board2.png)
 Progress as of March 5
 
+
+
+
+
+![project_endpts](/docs/trello_endpoints.png)
+
+![project_endpts2](/docs/trello_endpoints2.png)
+
+![project_pub_endpts](/docs/trello_public_endps.png)
+
+
+Progress as of March 8
+![project_mid](/docs/trello_board3.png)
