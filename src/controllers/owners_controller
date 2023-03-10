@@ -1,10 +1,12 @@
-from flask import jsonify, request, g, redirect, url_for
+from flask import jsonify, request, redirect, url_for
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db, bcrypt, auth, owners
 from auth import jwt_required
 from marshmallow import fields
 from models.owners import Owner
 from models.facilities import Facility
 from schemas.owners_schema import OwnerSchema
+from utilities import *
 from datetime import timedelta
 from flask_jwt_extended import create_access_token
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -86,21 +88,19 @@ def register():
         
 
 
-
 # retrieve details of a logged-in owner
 @owners.route('/<int:owner_id>/secure', methods=['GET'])
 @jwt_required()
 def get_owner(owner_id):
+    # Verify access
+    access_check = verify_owner_access(owner_id)
+    if access_check:
+        return access_check
+
     owner = Owner.query.get(owner_id)
-    # if owner does not exist
-    if not owner:
-        return jsonify({'error': 'Owner not found'}), 404
-    
-    # if owner's email does not match existing email in database
-    if owner.email != g.get('identity'):
-        return jsonify({'error': 'Unauthorized access'}), 401
     # return owner details that match
     return jsonify({'owner': OwnerSchema().dump(owner)}), 200
+
 
 
 
@@ -108,15 +108,14 @@ def get_owner(owner_id):
 @owners.route('/<int:owner_id>/secure', methods=['PUT'])
 @jwt_required()
 def update_owner(owner_id):
+    # Verify access
+    access_check = verify_owner_access(owner_id)
+    if access_check:
+        return access_check
+    
+    # retrieve the owner from the database
     owner = Owner.query.get(owner_id)
-    # if owner does not exist
-    if not owner:
-        return jsonify({'error': 'Owner not found'}), 404
-    
-    # if owner's email does not match existing email in database
-    if owner.email != g.get('identity'):
-        return jsonify({'error': 'Unauthorized access'}), 401
-    
+
     # load the owner schema fields from the request data
     owner_schema = OwnerSchema()
     owner_fields = owner_schema.load(request.json)
@@ -134,13 +133,26 @@ def update_owner(owner_id):
 # delete account of a logged-in owner
 @owners.route('/account/secure', methods=['DELETE'])
 @jwt_required()
-def delete_account(owner_id):
+def delete_account():
+    owner_id = get_jwt_identity()
+
+    # Verify if owner has access
+    access_check = verify_owner_access(owner_id)
+    if access_check:
+        return access_check
+
+    # retrieve the owner from the database
     owner = Owner.query.get(owner_id)
+
+    # Verify if owner's details match the account they are trying to delete
+    owner_fields = request.json
+    if owner.name != owner_fields.get('name') or owner.email != owner_fields.get('email') or owner.mobile != owner_fields.get('mobile'):
+        return jsonify({'error': 'Unauthorized access'}), 401
+
     # Delete all facilities associated with the owner's account
     Facility.query.filter_by(owner_id=owner_id).delete()
 
     # Delete the owner's account
-    owner = Owner.query.get(owner_id)
     db.session.delete(owner)
     db.session.commit()
 

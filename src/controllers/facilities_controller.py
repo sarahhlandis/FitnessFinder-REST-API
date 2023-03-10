@@ -1,30 +1,34 @@
 from flask import jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app import db
-from schemas.facilities_schema import facility_schema, FacilitySchema
+from app import db, facilities
+from schemas.facilities_schema import FacilitySchema
 from schemas.owners_schema import Owner
-from models.facilities import Facility, facilities, facility_schema, facilities_schema
+from schemas.facility_amenities_schema import FacilityAmenitySchema
+from schemas.promotions_schema import PromotionSchema
+from schemas.addresses_schema import AddressSchema
+from models.addresses import Address
+from models.facilities import Facility
+from models.facility_types import FacilityType
 from models.owners import Owner
-from models.amenities import Amenity
+from models.facility_amenities import FacilityAmenity
+from models.promotions import Promotion
+from utilities import *
 
 
-# get a list of all facilities owned by logged-in owner
+# retrieve a list of all facilities owned by logged-in owner
 @facilities.route('/secure', methods=["GET"])
 @jwt_required()
 def facilities_list():
     # get owner id from access token
     owner_id = get_jwt_identity()
 
-    # retrieve the owner object using the owner id
-    owner = Owner.query.get_or_404(owner_id)
+    # verify access
+    access_error = verify_owner_access(None, owner_id)
+    if access_error:
+        return access_error
 
     # retrieve all facilities associated with the owner id
     facilities = Facility.query.filter_by(owner_id=owner_id).all()
-
-    # check if each facility in the retrieved facilities list has the same owner as the current logged in owner
-    for facility in facilities:
-        if facility.owner != owner:
-            return jsonify({'message': 'Unauthorized access to facilities'}), 401
 
     # serialize the facilities using FacilitySchema
     facility_schema = FacilitySchema(many=True)
@@ -36,69 +40,95 @@ def facilities_list():
 
 
 
-# Retrieve a specific facility of a logged-in owner
+# retrieve a specific facility of a logged-in owner
 @facilities.route('/<int:facility_id>/secure', methods=['GET'])
 @jwt_required()
 def get_owned_facility(facility_id):
+    # get owner id from access token
     owner_id = get_jwt_identity()
-    owner = Owner.query.get_or_404(owner_id)
+
+    # verify access
+    access_error = verify_owner_access(facility_id, owner_id)
+    if access_error:
+        return access_error
+    
     facility = Facility.query.get_or_404(facility_id)
-    if facility.owner_id != owner_id:
-        return jsonify({'message': 'Facility not owned by the specified owner'}), 400
+
+    # serialize the facility
+    facility_schema = FacilitySchema()
     result = facility_schema.dump(facility)
     return jsonify(result)
 
 
 
 
-# create facility associated with existing owner, or create for a new owner
-@facilities.route('/new_facility/secure', methods=["POST"])
+# create a new facility for logged-in owner (with or without existing owned facility)
+@facilities.route('/secure', methods=['POST'])
 @jwt_required()
-def facilities_create():
-    # get the owner id from the access token
+def create_facility():
     owner_id = get_jwt_identity()
 
-    # retrieve the owner from the database
-    owner = Owner.query.filter_by(id=owner_id).first()
+    # verify access
+    access_error = verify_owner_access(None, owner_id)
+    if access_error:
+        return access_error
 
     # deserialize the request data using FacilitySchema
     facility_schema = FacilitySchema()
     facility_fields = facility_schema.load(request.json)
 
-    # check if the owner already owns at least one facility
-    if owner.facility is not None:
-        # verify that the owner_id in the request matches the owner_id of the facility being created
-        if facility_fields["owner_id"] != owner_id:
-            return jsonify({'message': 'Unauthorized access to create facility for another owner'}), 401
+    # deserialize the address field using AddressSchema
+    address_schema = AddressSchema()
+    address_fields = address_schema.load(request.json['address'])
 
-        # create a new Facility object with the deserialized data
-        facility = Facility(**facility_fields)
+    # merge the deserialized address fields into the facility fields
+    facility_fields['address'] = address_fields
 
-        # add the new Facility object to the database and commit the transaction
-        db.session.add(facility)
+    # create a new Facility object with the deserialized data
+    facility = Facility(**facility_fields, owner_id=owner_id)
+
+    # add the new Facility object to the database and commit the transaction
+    db.session.add(facility)
+    db.session.commit()
+
+    # retrieve a list of all facility_types and their IDs
+    facility_types = FacilityType.query.all()
+    for facility_type in facility_types:
+        print(f"Facility Type ID: {facility_type.id} | Name: {facility_type.name}")
+
+    # add facility type to facility object
+    facility_type_id = request.json.get('facility_type_id')
+    if facility_type_id:
+        # validate facility type ID against prepopulated list
+        valid_facility_types = [f.id for f in facility_types]
+        if facility_type_id not in valid_facility_types:
+            return jsonify({'error': 'Invalid facility type ID'}), 400
+        facility.facility_type_id = facility_type_id
+
+    # create new amenities for the facility
+    if 'amenities' in request.json:
+        for amenity_data in request.json['amenities']:
+            facility_amenity_schema = FacilityAmenitySchema()
+            facility_amenity_fields = facility_amenity_schema.load(amenity_data)
+            facility_amenity = FacilityAmenity(**facility_amenity_fields, facility_id=facility.id)
+            db.session.add(facility_amenity)
         db.session.commit()
 
-        # serialize the new Facility object using FacilitySchema
-        result = facility_schema.dump(facility)
-
-        # return the serialized new Facility object
-        return jsonify(result)
-    else:
-        # set the owner id to the authenticated owner id
-        facility_fields["owner_id"] = owner_id
-
-        # create a new Facility object with the deserialized data
-        facility = Facility(**facility_fields)
-
-        # add the new Facility object to the database and commit the transaction
-        db.session.add(facility)
+    # create new promotions for the facility
+    if 'promotions' in request.json:
+        for promotion_data in request.json['promotions']:
+            promotion_schema = PromotionSchema()
+            promotion_fields = promotion_schema.load(promotion_data)
+            promotion = Promotion(**promotion_fields, facility_id=facility.id)
+            db.session.add(promotion)
         db.session.commit()
 
-        # serialize the new Facility object using FacilitySchema
-        result = facility_schema.dump(facility)
+    # serialize the new Facility object using FacilitySchema
+    result = facility_schema.dump(facility)
 
-        # return the serialized new Facility object
-        return jsonify(result)
+    # return the serialized new Facility object
+    return jsonify(result), 201
+
 
 
 
@@ -107,6 +137,12 @@ def facilities_create():
 @jwt_required()
 def delete_facility(facility_id):
     owner_id = get_jwt_identity()
+
+    # verify access
+    access_error = verify_owner_access(facility_id, owner_id)
+    if access_error:
+        return access_error
+    
     facility = Facility.query.get(facility_id)
 
     if facility is None:
@@ -138,75 +174,95 @@ def delete_facility(facility_id):
 
 
 
+# # update a specific facility of a logged-in owner
+# @facilities.route('/<int:facility_id>/secure', methods=['PUT'])
+# @jwt_required()
+# def update_owned_facility(facility_id):
+#     owner_id = get_jwt_identity()
 
-# Update a specific owned facility for a logged-in owner
+#     # verify that the owner_id in the request matches the owner_id of the facility being updated
+#     if not verify_owner_access(owner_id, facility.owner_id):
+#         return jsonify({'message': 'Unauthorized access to update facility'}), 401
+
+#     # retrieve facility from the database
+#     facility = Facility.query.get_or_404(facility_id)
+
+#     # load and validate the request data using FacilitySchema
+#     facility_schema = FacilitySchema()
+#     facility_fields = facility_schema.load(request.json)
+
+#     # update the facility object with the validated data
+#     facility.business_name = facility_fields['business_name']
+#     facility.hours_of_op = facility_fields['hours_of_op']
+#     facility.address = facility_fields['address']
+#     facility.phone_num = facility_fields['phone_num']
+
+#     db.session.commit()
+#     result = facility_schema.dump(facility)
+#     return jsonify(result)
+
+
+
+# update a specific facility of a logged-in owner
 @facilities.route('/<int:facility_id>/secure', methods=['PUT'])
 @jwt_required()
 def update_owned_facility(facility_id):
     owner_id = get_jwt_identity()
-    owner = Owner.query.get_or_404(owner_id)
+
+    # verify access
+    access_error = verify_owner_access(facility_id, owner_id)
+    if access_error:
+        return access_error
+
+    # retrieve facility from the database
     facility = Facility.query.get_or_404(facility_id)
-    if facility.owner_id != owner.id:
-        return jsonify({'message': 'Facility not owned by the specified owner'}), 400
-    
-    # Load and validate the request data using FacilitySchema
+
+    # load and validate the request data using FacilitySchema
     facility_schema = FacilitySchema()
     facility_fields = facility_schema.load(request.json)
 
-    # Update the facility object with the validated data
+    # update the facility object with the validated data
     facility.business_name = facility_fields['business_name']
     facility.hours_of_op = facility_fields['hours_of_op']
     facility.address = facility_fields['address']
     facility.phone_num = facility_fields['phone_num']
-    
+
+    # update address
+    address_schema = AddressSchema()
+    address_fields = address_schema.load(request.json['address'])
+    facility.address = Address(**address_fields)
+
+    # update address post code
+    if 'post_code' in request.json['address']:
+        facility.address.post_code = request.json['address']['post_code']
+
+    # update facility type to facility object
+    facility_type_id = request.json.get('facility_type_id')
+    if facility_type_id:
+        # validate facility type ID against prepopulated list
+        valid_facility_types = [f.id for f in facility_types]
+    if facility_type_id not in valid_facility_types:
+        return jsonify({'error': 'Invalid facility type ID'}), 400
+    facility.facility_type_id = facility_type_id
+
+    # update amenities
+    if 'amenities' in request.json:
+        facility_amenity_schema = FacilityAmenitySchema(many=True)
+        amenities, errors = facility_amenity_schema.load(request.json['amenities'])
+        if errors:
+            return jsonify(errors), 422
+        facility.amenities = amenities
+
+    # update promotions
+    if 'promotions' in request.json:
+        promotion_schema = PromotionSchema(many=True)
+        promotions, errors = promotion_schema.load(request.json['promotions'])
+        if errors:
+            return jsonify(errors), 422
+        facility.promotions = promotions
+
     db.session.commit()
     result = facility_schema.dump(facility)
     return jsonify(result)
 
-
-
-# update amenities respective to owned facility for logged-in owner
-@facilities.route('/<int:facility_id>/amenities', methods=['PUT'])
-@jwt_required()
-def update_facility_amenities(facility_id):
-    owner_id = get_jwt_identity()
-    facility = Facility.query.get_or_404(facility_id)
-
-    # check if the user is the owner of the facility
-    if owner_id != facility.owner_id:
-        return jsonify({'error': 'Unauthorized access'}), 401
-
-    # create dictionary with all possible amenities
-    amenities = { 
-        'parking': False, 
-        'pool': False,
-        'sauna': False,
-        'steam_room': False,
-        'fuel_bar': False,    
-        'pilates': False,
-        'boxing': False,
-        'yoga': False,
-        'private_training': False,
-        'lockers': False,
-        'showers': False
-    }
-
-    # get the amenities selected by the owner
-    selected_amenities = request.json.get('amenities', [])
-
-    # update the dictionary with the selected amenities
-    for amenity_name in selected_amenities:
-        if amenity_name in amenities:
-            amenities[amenity_name] = True
-
-    # use the amenities dictionary to update the facility_amenities table
-    for amenity_name, amenity_value in amenities.items():
-        amenity = Amenity.query.filter_by(name=amenity_name).first()
-        if amenity:
-            if amenity_value and amenity not in facility.amenities:
-                facility.amenities.append(amenity)
-            elif not amenity_value and amenity in facility.amenities:
-                facility.amenities.remove(amenity)
-
-    db.session.commit()
 

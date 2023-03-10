@@ -16,6 +16,7 @@ class PromotionSchema(ma.SQLAlchemyAutoSchema):
             raise ValidationError("Start date must be before end date")
         
     id = fields.Integer(dump_only=True)
+    name = fields.String(required=True, max=100)
     start_date = fields.Date(required=True, validate=validate_dates)
     end_date = fields.Date(required=True, format='%Y-%m-%d')
     discount = fields.Integer(required=True, validate=validate.Range(min=0, max=100))
