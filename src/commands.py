@@ -1,7 +1,7 @@
 from app import db, bcrypt
 from flask import Flask, Blueprint
 from datetime import date
-from app.models import Owner, Amenity, Facility, Address, Promotion, PostCode
+from models import Owner, Amenity, Facility, Address, Promotion, PostCode
 
 db_commands = Blueprint("db", __name__)
 
@@ -32,15 +32,18 @@ def seed_db():
             mobile="0412345681"
         )
 
+        db.session.add(owner1)
+        db.session.commit()
+
         facility1 = Facility(
             business_name="BodyFit",
             independent=True,
             phone_num="0234567891",
-            hours_of_op="8:00, 18:00"
+            opening_time="08:00",
+            closing_time="18:00",
+            facility_type="Gym"
         )
-
-        facility_type1="Gym"
-        facility1.facility_type=facility_type1
+        
 
         address1 = Address(
             street_num=5,
@@ -83,11 +86,10 @@ def seed_db():
             business_name="Lifetime",
             independent=False,
             phone_num="0234567892",
-            hours_of_op="6:00, 20:00"
+            opening_time="6:00",
+            closing_time="20:00",
+            facility_type="Wellness Center"
         )
-
-        facility_type2="Wellness Center"
-        facility2.facility_type=facility_type2
 
         address2 = Address(
             street_num=210,
@@ -137,11 +139,11 @@ def seed_db():
             business_name="MindBody Boxing",
             independent=True,
             phone_num="0234567893",
-            hours_of_op="5:00, 14:00"
+            opening_time="5:00",
+            closing_time="14:00",
+            facility_type="Boxing Gym"
         )
 
-        facility_type3="Boxing Gym"
-        facility3.facility_type=facility_type3
 
         address3 = Address(
             street_num=4,
@@ -176,11 +178,10 @@ def seed_db():
             business_name="Space Yoga",
             independent=True,
             phone_num="0234567894",
-            hours_of_op="9:30, 19:30"
+            opening_time="9:30", 
+            closing_time="19:30",
+            facility_type="Yoga Studio"
         )
-
-        facility_type4="Yoga Studio"
-        facility4.facility_type=facility_type4
 
         address4 = Address(
             street_num=18,
@@ -215,11 +216,11 @@ def seed_db():
             business_name="Pilates101",
             independent=True,
             phone_num="0234567895",
-            hours_of_op="6:30, 18:30"
+            opening_time="6:30", 
+            closing_time="18:30",
+            facility_type="Pilates Studio"
         )
-
-        facility_type5="Pilates Studio"
-        facility5.facility_type=facility_type5
+    
 
         address5 = Address(
             street_num=73,

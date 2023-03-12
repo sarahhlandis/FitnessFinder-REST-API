@@ -1,7 +1,9 @@
+from app import db
 from flask import Flask, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from models.facility_types import FacilityType
+
 
 facilities = Blueprint('facilities', __name__, url_prefix="/facilities")
 auth = Blueprint('auth', __name__, url_prefix="/login")
@@ -10,6 +12,7 @@ promotions = Blueprint('promotions', __name__, url_prefix='/promotions')
 facility_amenities = Blueprint('facility_amenities', __name__, url_prefix='/facilities_amenities')
 addresses = Blueprint('addresses', __name__, url_prefix='/addresses')
 public = Blueprint('public', __name__, url_prefix='/public')
+
 
 def create_app(db):
     # Creating the flask app object - this is the core of our app!
