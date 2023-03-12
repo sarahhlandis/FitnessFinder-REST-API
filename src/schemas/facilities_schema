@@ -16,7 +16,8 @@ class FacilitySchema(ma.SQLAlchemyAutoSchema):
     business_name = fields.String(required=True)
     independent=fields.Boolean(required=True)
     phone_num = fields.String(required=True, validate=[Length(equal=10), validate.Regexp('^\d+$')])
-    hours_of_op = fields.String(required=True, format='HH:MM-HH:MM')
+    opening_time = fields.Time(required=True, format='%H:%M')
+    closing_time = fields.Time(required=True, format='%H:%M')
     address = fields.Nested(AddressSchema, required=True)
     amenities = fields.List(fields.Nested(FacilityAmenitySchema))
     promotions = fields.List(fields.Nested(PromotionSchema))
@@ -35,7 +36,7 @@ class FacilitySchema(ma.SQLAlchemyAutoSchema):
         
 
     @validates('hours_of_op')
-    def validate_hours_of_op(self, value):
+    def validate_opening_closing_times(self, value):
         try:
             # split the string into two parts based on the "-" separator
             opening_time, closing_time = value.split("-")
