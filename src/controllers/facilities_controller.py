@@ -12,6 +12,7 @@ from models.facility_types import FacilityType
 from models.owners import Owner
 from models.facility_amenities import FacilityAmenity
 from models.promotions import Promotion
+from models.post_codes import PostCode
 from utilities import *
 
 
@@ -80,6 +81,22 @@ def create_facility():
     # deserialize the address field using AddressSchema
     address_schema = AddressSchema()
     address_fields = address_schema.load(request.json['address'])
+
+    # check if a PostCode object with the provided postcode already exists
+    postcode_value = request.json['address']['post_code']['postcode']
+    post_code = PostCode.query.filter_by(postcode=postcode_value).first()
+    if post_code:
+        # if it does, assign its id to the post_code_id field of the newly created Address object
+        address_fields['post_code_id'] = post_code.id
+    else:
+        # if it doesn't, create a new PostCode object with the provided postcode value,
+        # assign its id to the post_code_id field of the newly created Address object,
+        # and add the new PostCode object to the database
+        post_code = PostCode(postcode=postcode_value)
+        db.session.add(post_code)
+        db.session.flush()  # this will generate the id for the new PostCode object
+        address_fields['post_code_id'] = post_code.id
+
 
     # merge the deserialized address fields into the facility fields
     facility_fields['address'] = address_fields
@@ -223,18 +240,37 @@ def update_owned_facility(facility_id):
 
     # update the facility object with the validated data
     facility.business_name = facility_fields['business_name']
-    facility.hours_of_op = facility_fields['hours_of_op']
+    facility.opening_time = facility_fields['opening_time']
+    facility.closing_time = facility_fields['closing_time']
     facility.address = facility_fields['address']
     facility.phone_num = facility_fields['phone_num']
 
     # update address
     address_schema = AddressSchema()
     address_fields = address_schema.load(request.json['address'])
-    facility.address = Address(**address_fields)
+    facility.address.street_num = address_fields['street_num']
+    facility.address.street = address_fields['street']
+    facility.address.suburb = address_fields['suburb']
+    facility.address.state = address_fields['state']
 
     # update address post code
     if 'post_code' in request.json['address']:
-        facility.address.post_code = request.json['address']['post_code']
+        post_code_value = request.json['address']['post_code']['postcode']
+        post_code = PostCode.query.filter_by(postcode=post_code_value).first()
+        if post_code:
+            # if it does, assign its id to the post_code_id field of the existing Address object
+            facility.address.post_code_id = post_code.id
+        else:
+            # if it doesn't, create a new PostCode object with the provided postcode value,
+            # assign its id to the post_code_id field of the existing Address object,
+            # and add the new PostCode object to the database
+            post_code = PostCode(postcode=post_code_value)
+            db.session.add(post_code)
+            db.session.flush()  # this will generate the id for the new PostCode object
+            facility.address.post_code_id = post_code.id
+
+    # retrieve a list of all facility_types and their IDs
+    facility_types = FacilityType.query.all()
 
     # update facility type to facility object
     facility_type_id = request.json.get('facility_type_id')

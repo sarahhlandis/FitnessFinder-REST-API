@@ -3,6 +3,7 @@ from app import ma
 from models.facilities import Facility
 from datetime import time
 from schemas.addresses_schema import AddressSchema
+from schemas.facility_types_schema import FacilityTypeSchema
 from schemas.facility_amenities_schema import FacilityAmenitySchema
 from schemas.promotions_schema import PromotionSchema
 
@@ -15,27 +16,42 @@ class FacilitySchema(ma.SQLAlchemyAutoSchema):
     business_name = fields.String(required=True)
     independent=fields.Boolean(required=True)
     phone_num = fields.String(required=True, validate=[Length(equal=10), validate.Regexp('^\d+$')])
-    hours_of_op = fields.Time(required=True, format='%H:%M')
+    hours_of_op = fields.String(required=True, format='HH:MM-HH:MM')
     address = fields.Nested(AddressSchema, required=True)
     amenities = fields.List(fields.Nested(FacilityAmenitySchema))
     promotions = fields.List(fields.Nested(PromotionSchema))
-
+    
     # foreign keys below
     # Owner will not explicitly set these, so they can be false in order to be populated
     # by the db
     owner_id = fields.Integer(required=False)
-    facility_type_id = fields.Integer(required=False)
     address_id = fields.Integer(required=False)
+    facility_type_id = fields.Integer(required=True)
 
     @validates_schema
     def validate_phone_num(self, data):
         if len(data['phone_num']) != 10:
             raise ValidationError('Phone number must be 10 digits long.')
         
+
     @validates('hours_of_op')
     def validate_hours_of_op(self, value):
-        if value == time(0, 0) or value == time(0, 0, 1):
-            # 24/7 is a valid option
-            return
-        elif value < time(0, 0) or value >= time(24, 0):
-            raise ValidationError('Hours of operation must be between 00:00 and 23:59.')
+        try:
+            # split the string into two parts based on the "-" separator
+            opening_time, closing_time = value.split("-")
+            # parse the opening and closing times into time objects
+            opening_time = time.fromisoformat(opening_time.strip())
+            closing_time = time.fromisoformat(closing_time.strip())
+            # check opening time is before the closing time
+            if opening_time >= closing_time:
+                raise ValidationError('Opening time must be before closing time.')
+            # check opening and closing times are valid
+            if opening_time == time(0, 0) and closing_time == time(24, 00):
+                # 24/7 is a valid option
+                return
+            elif opening_time < time(0, 0) or opening_time >= time(24, 0):
+                raise ValidationError('Opening time must be between 00:00 and 23:59.')
+            elif closing_time < time(0, 0) or closing_time >= time(24, 0):
+                raise ValidationError('Closing time must be between 00:00 and 23:59.')
+        except ValueError:
+            raise ValidationError('Invalid format. Must be HH:MM-HH:MM')

@@ -12,7 +12,8 @@ class Facility(db.Model):
     phone_num = db.Column(db.String(10), nullable=False)
     independent = db.Column(db.Boolean(), nullable=False)
     business_name = db.Column(db.String(100), nullable=False)
-    hours_of_op: db.Column(db.Time(), nullable=False)
+    opening_time = db.Column(db.Time(), nullable=False)
+    closing_time = db.Column(db.Time(), nullable=False)
 
     # Add the foreign keys in the Facilities model
     facility_type_id = db.Column(db.Integer, db.ForeignKey("facility_types.id"), nullable=True, ondelete='SETNULL')
@@ -33,7 +34,8 @@ class Facility(db.Model):
         self.phone_num = phone_num
         self.independent = independent
         self.business_name = business_name
-        self.hours_of_op = time(hour=hours_of_op.hour, minute=hours_of_op.minute)
+        self.opening_time = time(hour=hours_of_op.hour, minute=hours_of_op.minute)
+        self.closing_time = time(hour=hours_of_op.hour, minute=hours_of_op.minute)
         self.facility_type_id = facility_type_id
         self.owner_id = owner_id
         self.address_id = address_id
