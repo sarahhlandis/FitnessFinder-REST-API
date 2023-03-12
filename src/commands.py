@@ -1,11 +1,12 @@
 from app import db, bcrypt
 from flask import Flask, Blueprint
 from datetime import date
-from models.facilities import Facility
-from models.owners import Owner
+from app.models import Owner, Amenity, Facility, Address, Promotion, PostCode
 
 db_commands = Blueprint("db", __name__)
+
 app = Flask(__name__)
+app.register_blueprint(db_commands)
 
 # to run the app
 @app.cli.command()
@@ -14,60 +15,241 @@ def run():
 
 # create app's cli command named create, then run it in the terminal as "flask db create", 
 # it will invoke create_db function
-@db_commands .cli.command("create")
+@db_commands.cli.command("create")
 def create_db():
     db.create_all()
     print("Tables created")
 
-@db_commands .cli.command("seed")
+
+@db_commands.cli.command("seed")
 def seed_db():
+    try:
+        # SAMPLE 1
+        # Create owners before facilities as owner id is needed in the facility model as an fkey
+        owner1 = Owner(
+            email="owner1@example.com",
+            password=bcrypt.generate_password_hash("hello1").decode("utf-8"),
+            mobile="0412345681"
+        )
 
-    # Create owners before facilities as owner id is needed in the facility model as an fkey
-    owner1 = Owner(
-        email = "owner1@email.com",
-        password = bcrypt.generate_password_hash("123456").decode("utf-8"),
-        mobile = "04100475528"
-    )
-    db.session.add(owner1)
-    # This extra commit will end the transaction and generate the ids for the user
-    db.session.commit()
+        facility1 = Facility(
+            business_name="BodyFit",
+            independent=True,
+            phone_num="0234567891",
+            hours_of_op="8:00, 18:00"
+        )
 
-    facility = Facility(
-        email = "admin@email.com",
-        mobile = bcrypt.generate_password_hash("password123").decode("utf-8"),
-    )
-    db.session.add(facility)
+        facility_type1="Gym"
+        facility1.facility_type=facility_type1
 
-    # create the card object
-    card1 = Card(
-        # set the attributes, not the id, SQLAlchemy will manage that for us
-        title = "Start the project",
-        description = "Stage 1, creating the database",
-        status = "To Do",
-        priority = "High",
-        date = date.today(),
-        user_id = user1.id
-    )
-    # Add the object as a new row to the table
-    db.session.add(card1)
+        address1 = Address(
+            street_num=5,
+            street="George Street",
+            suburb="Sydney",
+            state="NSW",
+        )
 
-    card2 = Card(
-        # set the attributes, not the id, SQLAlchemy will manage that for us
-        title = "SQLAlchemy and Marshmallow",
-        description = "Stage 2, integrate both modules in the project",
-        status = "Ongoing",
-        priority = "High",
-        date = date.today(),
-        # it also can be done this way
-        user = user1
-    )
-    # Add the object as a new row to the tablef
-    db.session.add(card2)
+        post_code1=PostCode(post_code="2000")
 
-    # Commit changes between the creation of the users and cards. That way the user object 
-    # will have its id available to add it to the card. Without this extra commit user's id is None.
-    db.session.commit()
-    print("Table seeded") 
+        amenity1 = Amenity.query.filter_by(sauna=True).first()
+        amenity2 = Amenity.query.filter_by(pool=True).first()
+
+        promotion1 = Promotion(
+            name="Easter offer",
+            discount=15,
+            start_date=date(2023, 4, 1),
+            end_date=date(2023, 4, 15)
+        )
+
+        # associate objects with each other
+        facility1.owner = owner1
+        facility1.address = address1
+        facility1.post_code = post_code1
+        facility1.amenities.append(amenity1)
+        facility1.amenities.append(amenity2)
+        facility1.promotions.append(promotion1)
+
+
+
+        # SAMPLE 2
+        # Create owners before facilities as owner id is needed in the facility model as an fkey
+        owner2 = Owner(
+            email="owner2@example.com",
+            password=bcrypt.generate_password_hash("hello2").decode("utf-8"),
+            mobile="0412345682"
+        )
+
+        facility2 = Facility(
+            business_name="Lifetime",
+            independent=False,
+            phone_num="0234567892",
+            hours_of_op="6:00, 20:00"
+        )
+
+        facility_type2="Wellness Center"
+        facility2.facility_type=facility_type2
+
+        address2 = Address(
+            street_num=210,
+            street="Banksia Drive",
+            suburb="Sydney",
+            state="NSW",
+        )
+
+        post_code2=PostCode(post_code="2000")
+
+        amenity3 = Amenity.query.filter_by(boxing=True).first()
+        amenity4 = Amenity.query.filter_by(pool=True).first()
+        amenity5 = Amenity.query.filter_by(steam_room=True).first()
+        amenity6 = Amenity.query.filter_by(showers=True).first()
+        amenity7 = Amenity.query.filter_by(fuel_bar=True).first()
+        amenity8 = Amenity.query.filter_by(parking=True).first()
+
+        promotion2 = Promotion(
+            name="March Promo",
+            discount=20,
+            start_date=date(2023, 3, 1),
+            end_date=date(2023, 3, 31)
+        )
+
+        # associate objects with each other
+        facility2.owner = owner2
+        facility2.address = address2
+        facility2.post_code = post_code2
+        facility2.amenities.append(amenity3)
+        facility2.amenities.append(amenity4)
+        facility2.amenities.append(amenity5)
+        facility2.amenities.append(amenity7)
+        facility2.amenities.append(amenity6)
+        facility2.amenities.append(amenity8)
+        facility2.promotions.append(promotion2)
+
+
+        # SAMPLE 3
+        # Create owners before facilities as owner id is needed in the facility model as an fkey
+        owner3 = Owner(
+            email="owner3@example.com",
+            password=bcrypt.generate_password_hash("hello3").decode("utf-8"),
+            mobile="0412345683"
+        )
+
+        facility3 = Facility(
+            business_name="MindBody Boxing",
+            independent=True,
+            phone_num="0234567893",
+            hours_of_op="5:00, 14:00"
+        )
+
+        facility_type3="Boxing Gym"
+        facility3.facility_type=facility_type3
+
+        address3 = Address(
+            street_num=4,
+            street="Acacia Street",
+            suburb="Byron Bay",
+            state="NSW",
+        )
+
+        post_code3=PostCode(post_code="2481")
+
+        amenity9 = Amenity.query.filter_by(boxing=True).first()
+        amenity10 = Amenity.query.filter_by(lockers=True).first()
+
+        # associate objects with each other
+        facility3.owner = owner3
+        facility3.address = address3
+        facility3.post_code = post_code3
+        facility3.amenities.append(amenity9)
+        facility3.amenities.append(amenity10)
+
+
+
+        # SAMPLE 4
+        # Create owners before facilities as owner id is needed in the facility model as an fkey
+        owner4 = Owner(
+            email="owner4@example.com",
+            password=bcrypt.generate_password_hash("hello4").decode("utf-8"),
+            mobile="0412345684"
+        )
+
+        facility4 = Facility(
+            business_name="Space Yoga",
+            independent=True,
+            phone_num="0234567894",
+            hours_of_op="9:30, 19:30"
+        )
+
+        facility_type4="Yoga Studio"
+        facility4.facility_type=facility_type4
+
+        address4 = Address(
+            street_num=18,
+            street="Cavannbah Road",
+            suburb="Newcastle",
+            state="NSW",
+        )
+
+        post_code4=PostCode(post_code="2267")
+
+        amenity11 = Amenity.query.filter_by(yoga=True).first()
+        amenity12 = Amenity.query.filter_by(private_training=True).first()
+
+
+        # associate objects with each other
+        facility4.owner = owner4
+        facility4.address = address4
+        facility4.post_code = post_code4
+        facility4.amenities.append(amenity11)
+        facility4.amenities.append(amenity12)
+
+
+        # SAMPLE 5
+        # Create owners before facilities as owner id is needed in the facility model as an fkey
+        owner5 = Owner(
+            email="owner5@example.com",
+            password=bcrypt.generate_password_hash("hello5").decode("utf-8"),
+            mobile="0412345685"
+        )
+
+        facility5 = Facility(
+            business_name="Pilates101",
+            independent=True,
+            phone_num="0234567895",
+            hours_of_op="6:30, 18:30"
+        )
+
+        facility_type5="Pilates Studio"
+        facility5.facility_type=facility_type5
+
+        address5 = Address(
+            street_num=73,
+            street="Castlereagh Street",
+            suburb="Newport",
+            state="NSW",
+        )
+
+        post_code5=PostCode(post_code="2101")
+
+        # associate objects with each other
+        facility5.owner = owner5
+        facility5.address = address5
+        facility5.post_code = post_code5
+
+
+        # add all objects to the session and commit changes
+        db.session.add_all([owner1, facility1, address1, post_code1, amenity1, amenity2, promotion1])
+        db.session.add_all([owner2, facility2, address2, post_code2, amenity3, amenity4, amenity5, amenity6, amenity7, amenity8, promotion2])
+        db.session.add_all([owner3, facility3, address3, post_code3, amenity9, amenity10])
+        db.session.add_all([owner4, facility4, address4, post_code4, amenity11, amenity12])
+        db.session.add_all([owner5, facility5, address5, post_code5])
+        db.session.commit()
+        print("Database seeded!")
+    except Exception as e:
+        print(f"Error seeding database: {e}")
+        db.session.rollback()
+        raise e
+
+    
 
 
 @db_commands .cli.command("drop")

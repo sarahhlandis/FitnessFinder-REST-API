@@ -8,7 +8,7 @@ class PostCode(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     
     # Add the rest of the attributes (columns). 
-    post_code: db.Column(db.String(4), nullable=False)
+    post_code = db.Column(db.String(4), nullable=False)
     
     # Add the foreign keys in the Post_codes model - none
 

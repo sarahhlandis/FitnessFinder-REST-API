@@ -1,3 +1,4 @@
+from flask import bcrypt
 from app import db
 from sqlalchemy.orm import validates
 
@@ -9,9 +10,9 @@ class Owner(db.Model):
     id = db.Column(db.Integer,primary_key=True,autoincrement=True)
     
     # Add the rest of the attributes (columns). 
-    email: db.Column(db.Email(50), nullable=False, unique=True)
-    password: db.Column(db.String(15), nullable=False)
-    mobile: db.Column(db.String(10), nullable=False, unique=True)
+    email = db.Column(db.Email(50), nullable=False, unique=True)
+    password = db.Column(db.String(15), nullable=False)
+    mobile = db.Column(db.String(10), nullable=False, unique=True)
     
     # Add the relationships directions to other models
     facilities = db.relationship('Facility', backref='owner')
@@ -29,3 +30,7 @@ class Owner(db.Model):
             raise ValueError('Phone number must be 10 digits long.')
         
     
+    def __init__(self, email, password, mobile):
+        self.email = email
+        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
+        self.mobile = mobile

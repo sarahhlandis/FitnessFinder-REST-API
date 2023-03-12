@@ -7,4 +7,4 @@ class FacilityTypeSchema(ma.SQLAlchemyAutoSchema):
         model = FacilityType
     
     id = fields.Integer(dump_only=True)
-    facility_type = fields.String(required=True, validate=[Length(max=100)])
+    facility_type = fields.String(required=True)
