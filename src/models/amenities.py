@@ -1,5 +1,5 @@
 from app import db
-from models import facility_amenities
+# from models import facility_amenities
 
 class Amenity(db.Model):
     # define the table name for the db
@@ -23,5 +23,5 @@ class Amenity(db.Model):
 
     # Add the foreign keys in the Amenities model - none
 
-    # Set up join table with amenities
-    facilities = db.relationship('Facility', secondary=facility_amenities, lazy='subquery', backref=db.backref('amenities', lazy=True))
+    # # Set up join table with amenities
+    # facilities = db.relationship('Facility', secondary=facility_amenities, lazy='subquery', backref=db.backref('amenities', lazy=True))
