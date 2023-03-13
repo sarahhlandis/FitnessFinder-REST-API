@@ -1,33 +1,23 @@
-from marshmallow import fields, validates_schema, validate, validates, ValidationError, Length
+from marshmallow import fields, validates_schema, validate, ValidationError, Length
 from app import ma
-from models.facilities import Facility
 from datetime import time
-from schemas.addresses_schema import AddressSchema
-from schemas.facility_types_schema import FacilityTypeSchema
-from schemas.facility_amenities_schema import FacilityAmenitySchema
-from schemas.promotions_schema import PromotionSchema
 
-class FacilitySchema(ma.SQLAlchemyAutoSchema):
+class FacilitySchema(ma.Schema):
     class Meta:
-        model = Facility
-        include_fk = True
-    
-    id = fields.Integer(dump_only=True)
-    business_name = fields.String(required=True)
-    independent=fields.Boolean(required=True)
+        # Define the fields to expose
+        fields = ("id", "business_name", "independent", "phone_num", "opening_time", 
+                "closing_time", "address")
+        
+        load_only = ["owner_id","facility_type_id","address_id"]
+        
+    address = ma.Nested("AddressSchema")
+    amenities = fields.List(fields.Nested("FacilityAmenitySchema"))
+    promotions = fields.List(fields.Nested("PromotionSchema"))
+
     phone_num = fields.String(required=True, validate=[Length(equal=10), validate.Regexp('^\d+$')])
     opening_time = fields.Time(required=True, format='%H:%M')
     closing_time = fields.Time(required=True, format='%H:%M')
-    address = fields.Nested(AddressSchema, required=True)
-    amenities = fields.List(fields.Nested(FacilityAmenitySchema))
-    promotions = fields.List(fields.Nested(PromotionSchema))
     
-    # foreign keys below
-    # Owner will not explicitly set these, so they can be false in order to be populated
-    # by the db
-    owner_id = fields.Integer(required=False)
-    address_id = fields.Integer(required=False)
-    facility_type_id = fields.Integer(required=True)
 
     @validates_schema
     def validate_phone_num(self, data):
@@ -35,24 +25,34 @@ class FacilitySchema(ma.SQLAlchemyAutoSchema):
             raise ValidationError('Phone number must be 10 digits long.')
         
 
-    @validates('hours_of_op')
-    def validate_opening_closing_times(self, value):
+    @validates_schema
+    def validate_opening_closing_times(self, data):
+        opening_time = data.get('opening_time')
+        closing_time = data.get('closing_time')
+
+        if opening_time is None or closing_time is None:
+            # ff either opening time or closing time is missing, we can't do validation
+            return
+
         try:
-            # split the string into two parts based on the "-" separator
-            opening_time, closing_time = value.split("-")
             # parse the opening and closing times into time objects
-            opening_time = time.fromisoformat(opening_time.strip())
-            closing_time = time.fromisoformat(closing_time.strip())
+            opening_time = time.fromisoformat(opening_time.isoformat())
+            closing_time = time.fromisoformat(closing_time.isoformat())
+
             # check opening time is before the closing time
             if opening_time >= closing_time:
                 raise ValidationError('Opening time must be before closing time.')
+
             # check opening and closing times are valid
-            if opening_time == time(0, 0) and closing_time == time(24, 00):
-                # 24/7 is a valid option
-                return
-            elif opening_time < time(0, 0) or opening_time >= time(24, 0):
-                raise ValidationError('Opening time must be between 00:00 and 23:59.')
-            elif closing_time < time(0, 0) or closing_time >= time(24, 0):
-                raise ValidationError('Closing time must be between 00:00 and 23:59.')
+            if opening_time != time(0, 0) or closing_time != time(24, 0):
+                # If the facility doesn't operate 24/7, check the times are between 00:00 and 23:59
+                if opening_time < time(0, 0) or opening_time >= time(24, 0):
+                    raise ValidationError('Opening time must be between 00:00 and 23:59.')
+                elif closing_time < time(0, 0) or closing_time >= time(24, 0):
+                    raise ValidationError('Closing time must be between 00:00 and 23:59.')
         except ValueError:
-            raise ValidationError('Invalid format. Must be HH:MM-HH:MM')
+            raise ValidationError('Invalid format. Must be HH:MM')
+
+
+facility_schema = FacilitySchema()
+facilities_schema = FacilitySchema(many=True) 

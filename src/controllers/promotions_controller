@@ -68,7 +68,7 @@ def update_facility_promotion(facility_id, promotion_id):
     promotion.name = promotion_fields['name']
     promotion.start_date = promotion_fields['start_date']
     promotion.end_date = promotion_fields['end_date']
-    promotion.discount = promotion_fields['discount']
+    promotion.discount = promotion_fields['discount_percent']
 
     db.session.commit()
     result = promotion_schema.dump(promotion)

@@ -27,7 +27,7 @@ def seed_db():
         # Create owners before facilities as owner id is needed in the facility model as an fkey
         owner1 = Owner(
             email="owner1@example.com",
-            password=bcrypt.generate_password_hash("hello1").decode("utf-8"),
+            password=bcrypt.generate_password_hash("hello111").decode("utf-8"),
             mobile="0412345681"
         )
 
@@ -77,7 +77,7 @@ def seed_db():
         # Create owners before facilities as owner id is needed in the facility model as an fkey
         owner2 = Owner(
             email="owner2@example.com",
-            password=bcrypt.generate_password_hash("hello2").decode("utf-8"),
+            password=bcrypt.generate_password_hash("hello222").decode("utf-8"),
             mobile="0412345682"
         )
 
@@ -133,7 +133,7 @@ def seed_db():
         # Create owners before facilities as owner id is needed in the facility model as an fkey
         owner3 = Owner(
             email="owner3@example.com",
-            password=bcrypt.generate_password_hash("hello3").decode("utf-8"),
+            password=bcrypt.generate_password_hash("hello333").decode("utf-8"),
             mobile="0412345683"
         )
 
@@ -173,7 +173,7 @@ def seed_db():
         # Create owners before facilities as owner id is needed in the facility model as an fkey
         owner4 = Owner(
             email="owner4@example.com",
-            password=bcrypt.generate_password_hash("hello4").decode("utf-8"),
+            password=bcrypt.generate_password_hash("hello444").decode("utf-8"),
             mobile="0412345684"
         )
 
@@ -214,7 +214,7 @@ def seed_db():
         # Create owners before facilities as owner id is needed in the facility model as an fkey
         owner5 = Owner(
             email="owner5@example.com",
-            password=bcrypt.generate_password_hash("hello5").decode("utf-8"),
+            password=bcrypt.generate_password_hash("hello555").decode("utf-8"),
             mobile="0412345685"
         )
 
