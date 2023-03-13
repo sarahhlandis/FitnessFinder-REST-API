@@ -13,4 +13,4 @@ class PostCode(db.Model):
     # Add the foreign keys in the Post_codes model - none
 
     # Add the relationships directions to other models
-    addresses = db.relationship('Address', backref='post_code')
+    addresses = db.relationship('Address', backref='address_post_codes')

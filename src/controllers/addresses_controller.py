@@ -3,7 +3,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import ValidationError
 from models.facilities import Facility
 from schemas.post_codes_schema import PostCodeSchema
-from schemas import AddressSchema, FacilitySchema
+from schemas.addresses_schema import AddressSchema
+from schemas.facilities import FacilitySchema
 from utilities import *
 from app import db, addresses
 

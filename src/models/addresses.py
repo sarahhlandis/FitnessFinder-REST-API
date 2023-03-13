@@ -17,10 +17,4 @@ class Address(db.Model):
     post_code_id = db.Column(db.Integer, db.ForeignKey("post_codes.id"), nullable=False)
 
     # Add the relationships directions to other models
-    post_code = db.relationship('PostCode', backref='addresses')
-
-    def __init__(self, street_num, street, suburb, state):
-        self.street_num = street_num
-        self.street = street
-        self.suburb = suburb
-        self.state = state
+    post_code = db.relationship('PostCode', backref='post_code_addresses')

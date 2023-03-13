@@ -19,3 +19,5 @@ class AmenitySchema(ma.SQLAlchemyAutoSchema):
     lockers = fields.Boolean(required=False)
     showers = fields.Boolean(required=False)
     
+amenity_schema = AmenitySchema()
+amenities_schema = AmenitySchema(many=True) 

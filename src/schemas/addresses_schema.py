@@ -1,7 +1,8 @@
 from app import ma, db
 from models.addresses import Address
 from models.post_codes import PostCode
-from marshmallow import fields, validates_schema, validate, ValidationError, Length
+from marshmallow import fields, validates_schema, validate, ValidationError
+from marshmallow.fields import Length
 from schemas.post_codes_schema import PostCodeSchema
 
 
@@ -46,4 +47,5 @@ class AddressSchema(ma.SQLAlchemyAutoSchema):
                 db.session.flush()  
                 data['post_code_id'] = new_post_code.id
             
-    
+address_schema = AddressSchema()
+addresses_schema = AddressSchema(many=True)  

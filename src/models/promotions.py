@@ -17,5 +17,5 @@ class Promotion(db.Model):
     facility_id = db.Column(db.Integer, db.ForeignKey("facilities.id"), nullable=False)
 
     # Add the relationships directions to other models
-    facility = db.relationship('Facility', backref='promotions')
+    facility = db.relationship('Facility', backref='facility_promotions')
 
