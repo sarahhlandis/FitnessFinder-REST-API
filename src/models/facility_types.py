@@ -7,7 +7,7 @@ class FacilityType(db.Model):
     name = db.Column(db.String(100), nullable=False)
 
     # Add the relationships directions to other models
-    facilities = db.relationship('Facility', backref='facility_type', lazy=True)
+    facilities = db.relationship('Facility', backref='facility_types', lazy=True)
 
     def __repr__(self):
         return f"<FacilityType {self.name}>"
