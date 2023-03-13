@@ -1,11 +1,13 @@
-from flask import jsonify, request
+from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app import db, facility_amenities
+from app import db
 from models.facilities import Facility
 from models.amenities import Amenity
-from schemas.facilities import FacilitySchema
-from schemas.amenities_schema import AmenitySchema
+from schemas.facilities_schema import facilities_schema, facility_schema
+from schemas.amenities_schema import amenities_schema, amenity_schema
 from utilities import *
+
+facility_amenities = Blueprint('facility_amenities', __name__, url_prefix='/facilities_amenities')
 
 # owners cannot create new amenities - these are prepopulated into the database 
 # therefore there is no functionality use for creation of amenity
@@ -59,7 +61,6 @@ def update_facility_amenities(facility_id):
 
     db.session.commit()
 
-    facility_schema = FacilitySchema()
     result = facility_schema.dump(facility)
     return jsonify(result)
 
@@ -88,8 +89,7 @@ def delete_facility_amenities(facility_id):
             facility.amenities.remove(amenity)
 
     db.session.commit()
-    
-    facility_schema = FacilitySchema()
+
     result = facility_schema.dump(facility)
     return jsonify(result)
 
@@ -113,7 +113,6 @@ def get_facility_amenities(facility_id):
     # use defined SQLAlchemy relationship to get the amenities associated with the facility
     amenities = facility.amenities.all()
 
-    amenity_schema = AmenitySchema(many=True)
-    result = amenity_schema.dump(amenities)
+    result = amenities_schema.dump(amenities)
 
     return jsonify(result)

@@ -1,4 +1,4 @@
-from marshmallow import fields, ValidationError
+from marshmallow import fields, ValidationError, validates_schema
 from marshmallow.validate import Range
 from app import ma
 from datetime import date
@@ -15,7 +15,7 @@ class PromotionSchema(ma.Schema):
     discount_percent = fields.Integer(validate=Range(min=0, max=100))
 
     # Validate that start_date is not in the past and is before end_date
-    @ma.validates_schema
+    @validates_schema
     def validate_dates(self, data, **kwargs):
         if data["start_date"].date() < date.today():
             raise ValidationError("Start date cannot be in the past")

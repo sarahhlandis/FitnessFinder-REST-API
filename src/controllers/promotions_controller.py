@@ -1,10 +1,10 @@
 from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from app import db
+from utilities import *
 from models.facilities import Facility
 from models.promotions import Promotion
-from schemas.promotions_schema import PromotionSchema
-from app import db, promotions
-from utilities import *
+from schemas.promotions_schema import promotion_schema, promotions_schema
 
 
 promotions = Blueprint('promotions', __name__, url_prefix='/promotions')
@@ -22,7 +22,6 @@ def create_promotion(facility_id):
         return access_check
 
     # Deserialize the request data using PromotionSchema
-    promotion_schema = PromotionSchema()
     promotion_fields = promotion_schema.load(request.json)
 
     # Set the facility_id to the provided facility_id
@@ -61,7 +60,6 @@ def update_facility_promotion(facility_id, promotion_id):
     promotion = Promotion.query.get_or_404(promotion_id)
 
     # load and validate the request data using FacilitySchema
-    promotion_schema = PromotionSchema()
     promotion_fields = promotion_schema.load(request.json)
 
     # update the facility object with the validated data

@@ -1,15 +1,13 @@
 from flask import jsonify, request, redirect, url_for, Blueprint
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from app import db, bcrypt, auth, owners
-from auth import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
+from app import db, bcrypt
 from marshmallow import fields
-from models.owners import Owner
-from models.facilities import Facility
-from schemas.owners_schema import OwnerSchema
 from utilities import *
 from datetime import timedelta
-from flask_jwt_extended import create_access_token
 from werkzeug.security import generate_password_hash, check_password_hash
+from models.owners import Owner
+from models.facilities import Facility
+from schemas.owners_schema import owner_schema, owners_schema
 
 
 auth = Blueprint('auth', __name__, url_prefix="/login")
@@ -20,7 +18,7 @@ owners = Blueprint('owners', __name__, url_prefix='/owners')
 @auth.route("/login/secure", methods=["POST"])
 def auth_login():
     # Define the owner schema fields
-    owner_schema = OwnerSchema()
+    # name = fields.String(required=True)
     email = fields.Email(required=True)
     password = fields.String(required=True)
     owner_schema.load(request.json)
@@ -48,7 +46,6 @@ def auth_login():
 @owners.route('/register/secure', methods=['POST'])
 def register():
     # Load and validate the request data using OwnerSchema
-    owner_schema = OwnerSchema()
     owner_fields = owner_schema.load(request.json)
 
     # Extract the validated data from the fields dictionary
@@ -104,7 +101,7 @@ def get_owner(owner_id):
 
     owner = Owner.query.get(owner_id)
     # return owner details that match
-    return jsonify({'owner': OwnerSchema().dump(owner)}), 200
+    return jsonify({'owner':owner_schema.dump(owner)}), 200
 
 
 
@@ -122,7 +119,6 @@ def update_owner(owner_id):
     owner = Owner.query.get(owner_id)
 
     # load the owner schema fields from the request data
-    owner_schema = OwnerSchema()
     owner_fields = owner_schema.load(request.json)
 
     # update the owner details with the loaded data
