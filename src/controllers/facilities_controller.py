@@ -1,4 +1,4 @@
-from flask import jsonify, request
+from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db, facilities
 from schemas.facilities_schema import FacilitySchema
@@ -14,6 +14,9 @@ from models.facility_amenities import FacilityAmenity
 from models.promotions import Promotion
 from models.post_codes import PostCode
 from utilities import *
+
+facilities = Blueprint('facilities', __name__, url_prefix="/facilities")
+facility_amenities = Blueprint('facility_amenities', __name__, url_prefix='/facilities_amenities')
 
 
 # retrieve a list of all facilities owned by logged-in owner
