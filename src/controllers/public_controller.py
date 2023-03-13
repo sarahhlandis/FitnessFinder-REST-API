@@ -1,6 +1,6 @@
 from flask import jsonify, Blueprint
 from models.facilities import Facility
-from schemas.facilities import FacilitySchema
+from schemas.facilities_schema import facilities_schema
 from models.facility_amenities import FacilityAmenity
 from models.promotions import Promotion
 from models.amenities import Amenity
@@ -16,8 +16,7 @@ public = Blueprint('public', __name__, url_prefix='/public')
 @public.route('/facilities/postcode/<string:post_code>', methods=['GET'])
 def get_facilities_by_postcode(post_code):
     facilities = Facility.query.filter_by(post_code=post_code).all()
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
+    result = facilities_schema.dump(facilities)
     return jsonify(result)
 
 
@@ -30,8 +29,7 @@ def get_facilities_by_postcode(post_code):
 def get_upcoming_promotions():
     current_time = datetime.now()
     facilities = Facility.query.filter(Facility.promotions.any(Promotion.end_date >= current_time)).order_by(Promotion.end_date).all()
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
+    result = facilities_schema.dump(facilities)
     return jsonify(result)
 
 
@@ -42,8 +40,7 @@ def get_upcoming_promotions():
 @public.route('/facilities/type/<string:facility_type>', methods=['GET'])
 def get_facilities_by_type(facility_type):
     facilities = Facility.query.filter_by(facility_type=facility_type).all()
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
+    result = facilities_schema.dump(facilities)
     return jsonify(result)
 
 
@@ -58,10 +55,7 @@ def get_facilities_by_amenities(amenity_ids):
 
     # query facilities that have the selected amenities
     facilities = Facility.query.filter(Facility.amenities.any(Amenity.id.in_(amenity_ids))).all()
-
-    # serialize the facilities data using FacilitySchema
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
+    result = facilities_schema.dump(facilities)
 
     return jsonify(result)
 
@@ -71,8 +65,7 @@ def get_facilities_by_amenities(amenity_ids):
 @public.route('/facilities/<string:facility_type>/hours/<string:hours_of_op>', methods=['GET'])
 def get_facilities_open_hours(facility_type, hours_of_op):
     facilities = Facility.query.filter_by(facility_type=facility_type, hours_of_op=hours_of_op).all()
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
+    result = facilities_schema.dump(facilities)
     return jsonify(result)
 
 
@@ -93,8 +86,7 @@ def local_facilities_with_amenities(post_code, amenity_ids):
         .filter(Address.post_code == post_code, FacilityAmenity.id.in_(amenity_ids_list)) \
         .all()
     
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
+    result = facilities_schema.dump(facilities)
     return jsonify(result)
 
 
@@ -111,6 +103,5 @@ def local_with_promotions(post_code):
         .filter(Address.post_code == post_code, Promotion.start_date <= datetime.now(), Promotion.end_date >= datetime.now()) \
         .all()
     
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
+    result = facilities_schema.dump(facilities)
     return jsonify(result)

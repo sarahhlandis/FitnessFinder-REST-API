@@ -2,9 +2,9 @@ from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import ValidationError
 from models.facilities import Facility
+from schemas.facilities_schema import facility_schema, facilities_schema
 from schemas.post_codes_schema import PostCodeSchema
 from schemas.addresses_schema import AddressSchema
-from schemas.facilities_schema import FacilitySchema
 from utilities import *
 from app import db, addresses
 
@@ -55,7 +55,6 @@ def update_facility_address(facility_id):
 
     db.session.commit()
 
-    facility_schema = FacilitySchema()
     result = facility_schema.dump(facility)
     return jsonify(result)
 
