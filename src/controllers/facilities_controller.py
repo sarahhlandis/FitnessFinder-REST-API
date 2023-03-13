@@ -1,16 +1,16 @@
 from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app import db, facilities
-from schemas.facilities_schema import FacilitySchema
-from schemas.owners_schema import Owner
-from schemas.facility_amenities_schema import FacilityAmenitySchema
-from schemas.promotions_schema import PromotionSchema
-from schemas.addresses_schema import AddressSchema
+from app import db
+from schemas.facilities_schema import facility_schema, facilities_schema
+from schemas.owners_schema import owner_schema, owners_schema
+from schemas.facility_amenities_schema import facilityamenities_schema, facilityamenity_schema
+from schemas.promotions_schema import promotion_schema, promotions_schema
+from schemas.addresses_schema import address_schema, addresses_schema
 from models.addresses import Address
 from models.facilities import Facility
 from models.facility_types import FacilityType
 from models.owners import Owner
-from models.facility_amenities import FacilityAmenity
+# from models.facility_amenities import FacilityAmenity
 from models.promotions import Promotion
 from models.post_codes import PostCode
 from utilities import *
@@ -35,8 +35,7 @@ def facilities_list():
     facilities = Facility.query.filter_by(owner_id=owner_id).all()
 
     # serialize the facilities using FacilitySchema
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
+    result = facilities_schema.dump(facilities)
 
     # return the serialized facilities
     return jsonify(result)
@@ -59,7 +58,6 @@ def get_owned_facility(facility_id):
     facility = Facility.query.get_or_404(facility_id)
 
     # serialize the facility
-    facility_schema = FacilitySchema()
     result = facility_schema.dump(facility)
     return jsonify(result)
 
@@ -78,11 +76,9 @@ def create_facility():
         return access_error
 
     # deserialize the request data using FacilitySchema
-    facility_schema = FacilitySchema()
     facility_fields = facility_schema.load(request.json)
 
     # deserialize the address field using AddressSchema
-    address_schema = AddressSchema()
     address_fields = address_schema.load(request.json['address'])
 
     # check if a PostCode object with the provided postcode already exists
@@ -128,8 +124,7 @@ def create_facility():
     # create new amenities for the facility
     if 'amenities' in request.json:
         for amenity_data in request.json['amenities']:
-            facility_amenity_schema = FacilityAmenitySchema()
-            facility_amenity_fields = facility_amenity_schema.load(amenity_data)
+            facility_amenity_fields = facilityamenity_schema.load(amenity_data)
             facility_amenity = FacilityAmenity(**facility_amenity_fields, facility_id=facility.id)
             db.session.add(facility_amenity)
         db.session.commit()
@@ -137,7 +132,6 @@ def create_facility():
     # create new promotions for the facility
     if 'promotions' in request.json:
         for promotion_data in request.json['promotions']:
-            promotion_schema = PromotionSchema()
             promotion_fields = promotion_schema.load(promotion_data)
             promotion = Promotion(**promotion_fields, facility_id=facility.id)
             db.session.add(promotion)
@@ -208,7 +202,6 @@ def delete_facility(facility_id):
 #     facility = Facility.query.get_or_404(facility_id)
 
 #     # load and validate the request data using FacilitySchema
-#     facility_schema = FacilitySchema()
 #     facility_fields = facility_schema.load(request.json)
 
 #     # update the facility object with the validated data
@@ -238,7 +231,6 @@ def update_owned_facility(facility_id):
     facility = Facility.query.get_or_404(facility_id)
 
     # load and validate the request data using FacilitySchema
-    facility_schema = FacilitySchema()
     facility_fields = facility_schema.load(request.json)
 
     # update the facility object with the validated data
@@ -249,7 +241,6 @@ def update_owned_facility(facility_id):
     facility.phone_num = facility_fields['phone_num']
 
     # update address
-    address_schema = AddressSchema()
     address_fields = address_schema.load(request.json['address'])
     facility.address.street_num = address_fields['street_num']
     facility.address.street = address_fields['street']
@@ -286,16 +277,14 @@ def update_owned_facility(facility_id):
 
     # update amenities
     if 'amenities' in request.json:
-        facility_amenity_schema = FacilityAmenitySchema(many=True)
-        amenities, errors = facility_amenity_schema.load(request.json['amenities'])
+        amenities, errors = facilityamenities_schema.load(request.json['amenities'])
         if errors:
             return jsonify(errors), 422
         facility.amenities = amenities
 
     # update promotions
     if 'promotions' in request.json:
-        promotion_schema = PromotionSchema(many=True)
-        promotions, errors = promotion_schema.load(request.json['promotions'])
+        promotions, errors = promotions_schema.load(request.json['promotions'])
         if errors:
             return jsonify(errors), 422
         facility.promotions = promotions

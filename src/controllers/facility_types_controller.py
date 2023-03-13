@@ -1,6 +1,8 @@
-from flask import jsonify
-from app import facilities
+from flask import jsonify, Blueprint
 from models.facility_types import FacilityType
+
+facilities = Blueprint('facilities', __name__, url_prefix="/facilities")
+
 
 # facility_types are prepopulated so there is no functionality for an owner to need to modify
 # there is no functionality to delete a facility_type from a facility as it is required

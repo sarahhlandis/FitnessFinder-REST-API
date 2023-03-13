@@ -1,4 +1,5 @@
-from marshmallow import fields, validates_schema, validate, ValidationError, Length
+from marshmallow import fields, validates_schema, validate, ValidationError
+from marshmallow.fields import Length
 from app import ma
 from datetime import time
 
@@ -6,7 +7,7 @@ class FacilitySchema(ma.Schema):
     class Meta:
         # Define the fields to expose
         fields = ("id", "business_name", "independent", "phone_num", "opening_time", 
-                "closing_time", "address")
+                "closing_time", "address", "amenities", "promotions")
         
         load_only = ["owner_id","facility_type_id","address_id"]
         

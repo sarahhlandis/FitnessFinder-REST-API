@@ -1,11 +1,10 @@
 from flask import jsonify, Blueprint
 from models.facilities import Facility
 from schemas.facilities_schema import facilities_schema
-from models.facility_amenities import FacilityAmenity
+# from models.facility_amenities import FacilityAmenity
 from models.promotions import Promotion
 from models.amenities import Amenity
 from models.addresses import Address
-from app import public
 from sqlalchemy import desc
 from datetime import datetime
 
