@@ -70,7 +70,8 @@ def seed_db():
         facility1.amenities.append(amenity2)
         facility1.promotions.append(promotion1)
 
-
+        # add all objects to the session and commit changes
+        db.session.add_all([owner1, facility1, address1, post_code1, amenity1, amenity2, promotion1])
 
         # SAMPLE 2
         # Create owners before facilities as owner id is needed in the facility model as an fkey
@@ -124,7 +125,9 @@ def seed_db():
         facility2.amenities.append(amenity8)
         facility2.promotions.append(promotion2)
 
-
+        # add all objects to the session and commit changes
+        db.session.add_all([owner2, facility2, address2, post_code2, 
+                            amenity3, amenity4, amenity5, amenity6, amenity7, amenity8, promotion2])
 
         # SAMPLE 3
         # Create owners before facilities as owner id is needed in the facility model as an fkey
@@ -162,6 +165,8 @@ def seed_db():
         facility3.amenities.append(amenity9)
         facility3.amenities.append(amenity10)
 
+        # add all objects to the session and commit changes
+        db.session.add_all([owner3, facility3, address3, post_code3, amenity9, amenity10])
 
 
         # SAMPLE 4
@@ -201,6 +206,9 @@ def seed_db():
         facility4.amenities.append(amenity11)
         facility4.amenities.append(amenity12)
 
+        # add all objects to the session and commit changes
+        db.session.add_all([owner4, facility4, address4, post_code4, amenity11, amenity12])
+
 
         # SAMPLE 5
         # Create owners before facilities as owner id is needed in the facility model as an fkey
@@ -233,13 +241,10 @@ def seed_db():
         facility5.address = address5
         facility5.post_code = post_code5
 
-
         # add all objects to the session and commit changes
-        db.session.add_all([owner1, facility1, address1, post_code1, amenity1, amenity2, promotion1])
-        db.session.add_all([owner2, facility2, address2, post_code2, amenity3, amenity4, amenity5, amenity6, amenity7, amenity8, promotion2])
-        db.session.add_all([owner3, facility3, address3, post_code3, amenity9, amenity10])
-        db.session.add_all([owner4, facility4, address4, post_code4, amenity11, amenity12])
         db.session.add_all([owner5, facility5, address5, post_code5])
+
+
         db.session.commit()
         print("Database seeded!")
     except Exception as e:

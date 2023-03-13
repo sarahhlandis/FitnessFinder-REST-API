@@ -3,12 +3,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
-# from config import Config
-from dotenv import load_dotenv
-from config import app_config
+# # from config import Config
+# from dotenv import load_dotenv
+# from config import app_config
 
 
-load_dotenv()
+# load_dotenv()
 
 db = SQLAlchemy()
 ma = Marshmallow()
@@ -24,6 +24,7 @@ def create_app():
 
     # configuring our app:
     app.config.from_object("config.app_config")
+    
     # app.config.from_object(Config)
     # app.config.from_object(app_config)
 
@@ -46,28 +47,28 @@ def create_app():
     for controller in registerable_controllers:
         app.register_blueprint(controller)
 
-    def init_db():
-        from models.facility_types import FacilityType
+    # def init_db():
+    #     from models.facility_types import FacilityType
 
-        # check if default facility types have already been added to database
-        if FacilityType.query.first() is not None:
-            print('Default facility types already exist in database.')
-            return
+    #     # check if default facility types have already been added to database
+    #     if FacilityType.query.first() is not None:
+    #         print('Default facility types already exist in database.')
+    #         return
 
-        # add default facility types to the database
-        facility_types = [
-            FacilityType(name="Pilates Studio"),
-            FacilityType(name="Gym"),
-            FacilityType(name="Wellness Center"),
-            FacilityType(name="Yoga Studio"),
-            FacilityType(name="Dance Studio"),
-            FacilityType(name="Athletic Club"),
-            FacilityType(name="Boxing Gym"),
-            # add more facility types as needed
-        ]
-        with app.app_context():
-            with db.session.begin():
-                db.session.add_all(facility_types)
+    #     # add default facility types to the database
+    #     facility_types = [
+    #         FacilityType(name="Pilates Studio"),
+    #         FacilityType(name="Gym"),
+    #         FacilityType(name="Wellness Center"),
+    #         FacilityType(name="Yoga Studio"),
+    #         FacilityType(name="Dance Studio"),
+    #         FacilityType(name="Athletic Club"),
+    #         FacilityType(name="Boxing Gym"),
+    #         # add more facility types as needed
+    #     ]
+    #     with app.app_context():
+    #         with db.session.begin():
+    #             db.session.add_all(facility_types)
     
-    init_db()
+    # init_db()
     return app

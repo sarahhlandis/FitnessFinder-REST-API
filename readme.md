@@ -74,9 +74,24 @@ Being that this is a searchable database with different parameters a user may wa
 "ORM stands for object-relational mapping, where objects are used to connect the programming language on to the database systems, with the facility to work SQL and object-oriented programming concepts."[^1] There are many different ORMs which link better to specific object-oriented programming languages and frameworks such as SQLAlchemy and Flask, or Django ORM and Django (language).
 >
 ### Functionalities:
-> ORMs generate objects which map to tables in the database virtually. Once these objects are up, then coders can easily work to retrieve, manipulate or delete any field from the table without paying much attention to language specifically. It supports writing complex long SQL queries in a simpler way. It uses libraries to comprehend the code we are writing in the form of objects and then map it onto the database.[^1]
+> Object-relational mapping (ORM) is a technique that creates a layer between the language and the database, helping programmers work with data without the OOP paradigm...An object-relational mapper provides an object-oriented layer between relational databases and object-oriented programming languages without having to write SQL queries. It standardizes interfaces reducing boilerplate and speeding development time... 
 >
+> ORMs translate this data and create a structured map to help developers understand the underlying database structure. The mapping explains how objects are related to different tables. ORMs use this information to convert data between tables and generate the SQL code for a relational database to insert, update, create and delete data in response to changes the application makes to the data object. Once written, the ORM mapping will manage the application’s data needs and you will not need to write any more low-level code.
+[^7]
+
+> An ORM will convert the result of a database query into a class within our application. The selected columns will map to the class properties. On the other hand, if you push data towards the database, an ORM will map the properties of a class into columns of a table. When people say ORM, they refer to a framework that implements this technique. Some of the most frequently used ORM frameworks:  Entity Framework, Hibernate, Sequelize, and SQLAlchemy.[^6]
+
 ### Benefits:
+- Productivity:
+"Using a tool like an ORM that automatically generates the data-access code saves tremendous development time that does not add value to the application. In some cases, the ORM can write 100 percent of the data-access code for the application. The ORM can also help you keep track of database changes making it easier to debug and change the application in the future."[^7] 
+    > 
+    Essentially, by forgoing having to write out all the SQL queries in SQL language, developers can save time and focus more on the functionality of their code rather than SQL's syntactic requirements. 
+    >
+    "[Using an ORM] makes the application independent of the database management system being used in the backend, and so you can write a generic query. In case of migrating to another database, it becomes fairly a good deal to have ORM implemented in the project."[^1]
+- Application Design:
+" If you use an ORM to manage the data interface, you do not need to create the perfect database schema in advance. You will be able to change the existing interface easily. Separating the database table from the programming code also allows you to switch out data for different applications."[^7] Once the Models are written, that's it - there's no need to rewrite it in any other locations, making it easier to maintain as its DRY. Models also use Object-Oriented Programming (OOP) so using an ORM is effectively extending and inheriting from the Models.
+
+
 
 
 >
@@ -155,114 +170,31 @@ Regarding this API's endpoints, some require verification and related authentica
 >
 The endpoints with verification are specified in the routes with a ```/secure``` tag attached to the endpoint url. The public routes accessible to any user (untracked), do not have this ```/secure``` tag. This is in part to deter accidental routing to this part of the API by someone unintended, as well as to signify to those who are at that endpoint, that it is a secure route.
 >
+I also wanted any untracked user to be able to retrieve data from the API so I created the below public endpoints.
 > ### Public endpoints: 
 blueprint:
     ```public = Blueprint('public', __name__, url_prefix='/public')```
-# query facilities based on post_code
-# returns all facilities with specified post_code will be returned
-@public.route('/facilities/postcode/<string:post_code>', methods=['GET'])
-def get_facilities_by_postcode(post_code):
-    facilities = Facility.query.filter_by(post_code=post_code).all()
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
-    return jsonify(result)
 
-
-
-
-
-# query facilities based on promotion end date
-# returns all facilities with running promotions that have not yet expired from day of query
-@public.route('/facilities/promotions/current', methods=['GET'])
-def get_upcoming_promotions():
-    current_time = datetime.now()
-    facilities = Facility.query.filter(Facility.promotions.any(Promotion.end_date >= current_time)).order_by(Promotion.end_date).all()
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
-    return jsonify(result)
-
-
-
-
-# query facilities based on facility_type
-# returns all facilities that are classed as specified facility type
-@public.route('/facilities/type/<string:facility_type>', methods=['GET'])
-def get_facilities_by_type(facility_type):
-    facilities = Facility.query.filter_by(facility_type=facility_type).all()
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
-    return jsonify(result)
-
-
-
-
-# query facilities based on an amenity list
-# returns all facilities that have the specified amenities
-@public.route('/amenities/<string:amenity_ids>', methods=['GET'])
-def get_facilities_by_amenities(amenity_ids):
-    # convert comma-separated string of amenity IDs to a list of integers
-    amenity_ids = [int(amenity_id) for amenity_id in amenity_ids.split(',')]
-
-    # query facilities that have the selected amenities
-    facilities = Facility.query.filter(Facility.amenities.any(Amenity.id.in_(amenity_ids))).all()
-
-    # serialize the facilities data using FacilitySchema
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
-
-    return jsonify(result)
-
-
-
-# query all facilities of a specific type that are open for certain hours
-@public.route('/facilities/<string:facility_type>/hours/<string:hours_of_op>', methods=['GET'])
-def get_facilities_open_hours(facility_type, hours_of_op):
-    facilities = Facility.query.filter_by(facility_type=facility_type, hours_of_op=hours_of_op).all()
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
-    return jsonify(result)
-
-
-
-
-
-# query all facilities in a specified post_code that have the specified amenities
-# returns all facilities within post_code and also have desired amenities
-@public.route('/facilities/postcode/<string:post_code>/amenities/<string:amenity_ids>', methods=['GET'])
-def local_facilities_with_amenities(post_code, amenity_ids):
-    # Split comma-separated amenity IDs into a list
-    amenity_ids_list = amenity_ids.split(',')
-    
-    # Query facilities with matching postcode and amenities
-    facilities = Facility.query \
-        .join(Facility.address) \
-        .join(Facility.amenities) \
-        .filter(Address.post_code == post_code, FacilityAmenity.id.in_(amenity_ids_list)) \
-        .all()
-    
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
-    return jsonify(result)
-
-
-
-
-# query all facilities that are running promotions in a specified post_code
-# returns all facilities within post_code that are also running promotions
-@public.route('/facilities/postcode/<string:post_code>/promotions', methods=['GET'])
-def local_with_promotions(post_code):
-    # Query facilities with matching postcode and active promotions
-    facilities = Facility.query \
-        .join(Facility.address) \
-        .join(Facility.promotions) \
-        .filter(Address.post_code == post_code, Promotion.start_date <= datetime.now(), Promotion.end_date >= datetime.now()) \
-        .all()
-    
-    facility_schema = FacilitySchema(many=True)
-    result = facility_schema.dump(facilities)
-    return jsonify(result)
-
-
+- Query facilities based on post_code
+    returns all facilities with specified post_code will be returned
+    ```@public.route('/facilities/postcode/<string:post_code>', methods=['GET'])```
+- Query facilities based on promotion end date 
+    returns all facilities with running promotions that have not yet expired from day of query
+    ```@public.route('/facilities/promotions/current', methods=['GET'])```
+- Query facilities based on facility_type
+    returns all facilities that are classed as specified facility type
+    ```@public.route('/facilities/type/<string:facility_type>', methods=['GET'])```
+- Query facilities based on an amenity list
+    returns all facilities that have the specified amenities
+    ```@public.route('/amenities/<string:amenity_ids>', methods=['GET'])```
+- Query all facilities of a specific type that are open for certain hours
+    ```@public.route('/facilities/<string:facility_type>/hours/<string:hours_of_op>', methods=['GET'])```
+- Query all facilities in a specified post_code that have the specified amenities
+    returns all facilities within post_code and also have desired amenities
+    ```@public.route('/facilities/postcode/<string:post_code>/amenities/<string:amenity_ids>', methods=['GET'])```
+- Query all facilities that are running promotions in a specified post_code
+    returns all facilities within post_code that are also running promotions
+    ```@public.route('/facilities/postcode/<string:post_code>/promotions', methods=['GET'])```
 
 ## Entity Relationship Diagram:
 ![erd](/docs/final_erd.png)
@@ -350,6 +282,9 @@ Progress as of March 13
 
 
 ## Sources
+[^1]: EDUCBA. (2020). What is ORM? | How ORM Works? | A Quick Glance of ORM Features. [online] Available at: https://www.educba.com/what-is-orm/.
+
+
 [^2]: Bitnine.net. (2023). [online] Available at: https://bitnine.net/blog-postgresql/advantages-of-postgresql/?ckattempt=1 [Accessed 27 Jan. 2023].
 
 
@@ -361,4 +296,10 @@ Progress as of March 13
 
 [^5]: Dhruv, S. (2019, May 15). PostgreSQL Advantages and Disadvantages [Review of PostgreSQL Advantages and Disadvantages]. https://www.aalpha.net/blog/pros-and-cons-of-using-postgresql-for-application-development/
 
-[^1]: 
+
+
+[^6]: Lubenov, L. (2021). Object-Relational Mapping (ORM) [Dev Concepts #19.2]. [online] SoftUni Global. Available at: https://softuni.org/dev-concepts/object-relational-mapping-orm/ [Accessed 13 Mar. 2023].
+
+
+[^7]: Liang, M. (2021). Understanding Object-Relational Mapping: Pros, Cons, and Types. [online] AltexSoft. Available at: https://www.altexsoft.com/blog/object-relational-mapping/.
+

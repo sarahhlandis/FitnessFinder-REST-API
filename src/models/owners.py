@@ -14,8 +14,9 @@ class Owner(db.Model):
     password = db.Column(db.String(15), nullable=False)
     mobile = db.Column(db.String(10), nullable=False, unique=True)
     
-    # # Add the relationships directions to other models
-    # facilities = db.relationship('Facility', backref='owner')
+    # Add the relationships directions to other models
+    facilities = db.relationship("Facility", backref="facility_owners", cascade="all, delete-orphan")
+
 
     # Add a validation for the password field to be >= 8 chars
     @validates('password')
@@ -29,8 +30,3 @@ class Owner(db.Model):
         if len(mobile) != 10:
             raise ValueError('Phone number must be 10 digits long.')
         
-    
-    def __init__(self, email, password, mobile):
-        self.email = email
-        self.password = bcrypt.generate_password_hash(password).decode('utf-8')
-        self.mobile = mobile
