@@ -1,4 +1,4 @@
-from flask import jsonify, request, redirect, url_for
+from flask import jsonify, request, redirect, url_for, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db, bcrypt, auth, owners
 from auth import jwt_required
@@ -10,6 +10,10 @@ from utilities import *
 from datetime import timedelta
 from flask_jwt_extended import create_access_token
 from werkzeug.security import generate_password_hash, check_password_hash
+
+
+auth = Blueprint('auth', __name__, url_prefix="/login")
+owners = Blueprint('owners', __name__, url_prefix='/owners')
 
 
 # authenticate an existing owner 

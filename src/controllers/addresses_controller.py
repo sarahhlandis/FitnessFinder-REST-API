@@ -1,11 +1,14 @@
-from flask import jsonify, request
+from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import ValidationError
-from models import Facility
+from models.facilities import Facility
 from schemas.post_codes_schema import PostCodeSchema
 from schemas import AddressSchema, FacilitySchema
 from utilities import *
 from app import db, addresses
+
+
+addresses = Blueprint('addresses', __name__, url_prefix='/addresses')
 
 
 # an address cannot be deleted as it is mandatory for a facility. an address cannot be added

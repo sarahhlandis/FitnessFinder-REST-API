@@ -1,4 +1,4 @@
-from flask import bcrypt
+from app import bcrypt
 from app import db
 from sqlalchemy.orm import validates
 
@@ -10,12 +10,12 @@ class Owner(db.Model):
     id = db.Column(db.Integer,primary_key=True,autoincrement=True)
     
     # Add the rest of the attributes (columns). 
-    email = db.Column(db.Email(50), nullable=False, unique=True)
+    email = db.Column(db.String(50), nullable=False, unique=True)
     password = db.Column(db.String(15), nullable=False)
     mobile = db.Column(db.String(10), nullable=False, unique=True)
     
-    # Add the relationships directions to other models
-    facilities = db.relationship('Facility', backref='owner')
+    # # Add the relationships directions to other models
+    # facilities = db.relationship('Facility', backref='owner')
 
     # Add a validation for the password field to be >= 8 chars
     @validates('password')

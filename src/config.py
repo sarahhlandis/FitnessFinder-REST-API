@@ -1,13 +1,11 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # access to .env and get the value of SECRET_KEY, the variable name can be any but needs to match
     JWT_SECRET_KEY =  os.environ.get("SECRET_KEY")
-    
-    # show the columns in the right order instead of alphabetically. Two actions are necessary for that. 
-    # In the schema add ordered = True before the fields and 
-    # also add JSON_SORT_KEYS=False in the config.py file:
     JSON_SORT_KEYS=False
     @property
     def SQLALCHEMY_DATABASE_URI(self):

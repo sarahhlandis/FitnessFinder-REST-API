@@ -1,27 +1,26 @@
 from app import db, bcrypt
-from flask import Flask, Blueprint
+from flask import Blueprint
 from datetime import date
-from models import Owner, Amenity, Facility, Address, Promotion, PostCode
+from models.owners import Owner
+from models.amenities import Amenity
+from models.facilities import Facility
+from models.addresses import Address
+from models.promotions import Promotion
+from models.post_codes import PostCode
+
 
 db_commands = Blueprint("db", __name__)
 
-app = Flask(__name__)
-app.register_blueprint(db_commands)
-
-# to run the app
-@app.cli.command()
-def run():
-    app.run()
 
 # create app's cli command named create, then run it in the terminal as "flask db create", 
 # it will invoke create_db function
-@db_commands.cli.command("create")
+@db_commands .cli.command("create")
 def create_db():
     db.create_all()
     print("Tables created")
 
 
-@db_commands.cli.command("seed")
+@db_commands .cli.command("seed")
 def seed_db():
     try:
         # SAMPLE 1
@@ -44,7 +43,6 @@ def seed_db():
             facility_type="Gym"
         )
         
-
         address1 = Address(
             street_num=5,
             street="George Street",
@@ -127,6 +125,7 @@ def seed_db():
         facility2.promotions.append(promotion2)
 
 
+
         # SAMPLE 3
         # Create owners before facilities as owner id is needed in the facility model as an fkey
         owner3 = Owner(
@@ -143,7 +142,6 @@ def seed_db():
             closing_time="14:00",
             facility_type="Boxing Gym"
         )
-
 
         address3 = Address(
             street_num=4,
@@ -221,7 +219,6 @@ def seed_db():
             facility_type="Pilates Studio"
         )
     
-
         address5 = Address(
             street_num=73,
             street="Castlereagh Street",

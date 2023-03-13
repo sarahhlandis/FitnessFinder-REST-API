@@ -1,5 +1,6 @@
-from models.facilities import Facility
 from flask import jsonify
+from models.facilities import Facility
+
 
 # repeated helper function
 

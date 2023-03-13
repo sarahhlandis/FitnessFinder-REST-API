@@ -1,7 +1,8 @@
 from marshmallow import fields
 from app import ma
 from models.post_codes import PostCode
-from marshmallow import validates_schema, validate, ValidationError, Length
+from marshmallow import validates_schema, validate, ValidationError
+from marshmallow.fields import Length
 
 class PostCodeSchema(ma.SQLAlchemyAutoSchema):
     class Meta:

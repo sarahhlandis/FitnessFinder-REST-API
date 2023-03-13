@@ -1,4 +1,4 @@
-from flask import jsonify
+from flask import jsonify, Blueprint
 from models.facilities import Facility
 from schemas.facilities import FacilitySchema
 from models.facility_amenities import FacilityAmenity
@@ -8,6 +8,8 @@ from models.addresses import Address
 from app import public
 from sqlalchemy import desc
 from datetime import datetime
+
+public = Blueprint('public', __name__, url_prefix='/public')
 
 # query facilities based on post_code
 # returns all facilities with specified post_code will be returned
