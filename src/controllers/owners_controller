@@ -52,6 +52,7 @@ def register():
     owner_fields = owner_schema.load(request.json)
 
     # Extract the validated data from the fields dictionary
+    name = owner_fields['name']
     email = owner_fields['email']
     password = owner_fields['password']
     mobile = owner_fields['mobile']
@@ -73,8 +74,8 @@ def register():
         register = owner_fields.get('register')
 
         if register:
-            # create a new owner with the provided email, password, and mobile
-            owner = Owner(email=email, mobile=mobile)
+            # create a new owner with the provided name, email, password, and mobile
+            owner = Owner(name=name, email=email, mobile=mobile, password=password)
             # Hash the owner's password before saving to the database
             hashed_password = generate_password_hash(password, method='sha256')
             owner.set_password(hashed_password)
@@ -128,6 +129,7 @@ def update_owner(owner_id):
     owner.name = owner_fields.get('name', owner.name)
     owner.email = owner_fields.get('email', owner.email)
     owner.mobile = owner_fields.get('mobile', owner.mobile)
+    owner.password = owner_fields.get('password', owner.password)
     # commit changes to database
     db.session.commit()
     return jsonify({'message': 'Owner information updated successfully'}), 200

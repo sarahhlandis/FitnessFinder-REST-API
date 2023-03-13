@@ -6,13 +6,13 @@
 
 ### [Project Management](https://trello.com/b/L4tvjr7Q/t1a3-terminal-application)
 
-## Purpose:
+## 1. Purpose:
 The FitnessFinder API is an application that intends to mitigate and ease the process of finding a fitness center. Often, when searching for a new gym or studio, one must travel to the prospective facilities to check what amenities they have, hours, and just to gain general info. This application aims to make this process easier for people by having this info all in one place, thus making it easier to compare facilities and find one that better suits their needs.
 
-## Resolution:
+## 2. Resolution:
 This problems needs to be solved because with the evergrowing population of fitness centers, gyms, pilates studios, etc. it can be overwhelming finding something that suits all your needs. This application congregates all the relevant data into one place making it much easier to do preliminary research when starting this process. Upgrades of this app may include a user portal in which users can review and rate facilities making it even easier to see which gyms may be suitable for the prospective gym-goer's needs. 
 
-## Database System:
+## 3. Database System:
 I have chosen to use postgreSQL as my relational database management system.
 With Flask applications, a developer will often need to utilize a database management system (DBMS) to handle and store the data to later interact with the application and integrate properly with the Flask framework. PostgreSQL as a DBMS has many **benefits**.
 
@@ -70,7 +70,7 @@ Additionally, hosting an api that will eventually require data cleaning as facil
 >
 Being that this is a searchable database with different parameters a user may want to query, it was important to choose a database that allowed for flexible and complex querying. These were the main components I considered when choosing a database and felt that postgreSQL was most suited to this API's needs regarding data storage, maintaining integrity, and querying capabilities.
 
-## ORM Basics:
+## 4. ORM Basics:
 "ORM stands for object-relational mapping, where objects are used to connect the programming language on to the database systems, with the facility to work SQL and object-oriented programming concepts."[^1] There are many different ORMs which link better to specific object-oriented programming languages and frameworks such as SQLAlchemy and Flask, or Django ORM and Django (language).
 >
 ### Functionalities:
@@ -95,7 +95,7 @@ Being that this is a searchable database with different parameters a user may wa
 
 
 >
-## API Endpoints:
+## 5. API Endpoints:
 > 
 ### Secure endpoints: 
 ### Owner endpoints -
@@ -196,17 +196,17 @@ blueprint:
     returns all facilities within post_code that are also running promotions
     ```@public.route('/facilities/postcode/<string:post_code>/promotions', methods=['GET'])```
 
-## Entity Relationship Diagram:
+## 6. Entity Relationship Diagram:
 ![erd](/docs/final_erd.png)
 
-## Third Party Services:
+## 7. Third Party Services:
 
 
-## Models:
+## 8. Models:
 
 
 
-## Database Relations:
+## 9. Database Relations:
 The FitnessFinder API intends to implement its database relations based off the project's preliminary entity relationship diagram. 
 
 The relations can be elaborated as follows:
@@ -223,7 +223,7 @@ The relations can be elaborated as follows:
 
 *Post_codes* has an atleast-one-to-one relationship with ```addresses```. A postcode can have multiple addresses within that post_code, and an address must only have one ```post_code```. The relationship is atleast-one from post_codes because there will always be atleast one address with that specific post_code if the address is entered into the database.
 
-## Project Management
+## 10. Project Management
 ### Development
 When building an api that intends to store data thru a connected database, it's important to build logically. The first step I did was create the entity relationship diagram (ERD) so that I could better understand the relationships between all the desired tracked entities. In doing so, I would be better poised to begin coding the relevant models, schemas, routes etc once I knew the exact relations I wanted to build.
 

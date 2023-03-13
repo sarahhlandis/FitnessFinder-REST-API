@@ -4,7 +4,7 @@ from marshmallow import ValidationError
 from models.facilities import Facility
 from schemas.post_codes_schema import PostCodeSchema
 from schemas.addresses_schema import AddressSchema
-from schemas.facilities import FacilitySchema
+from schemas.facilities_schema import FacilitySchema
 from utilities import *
 from app import db, addresses
 

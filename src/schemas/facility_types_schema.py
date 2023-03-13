@@ -1,10 +1,11 @@
-from marshmallow import fields, Length
+from marshmallow import fields
 from app import ma
-from models.facility_types import FacilityType
 
-class FacilityTypeSchema(ma.SQLAlchemyAutoSchema):
+class FacilityTypeSchema(ma.Schema):
     class Meta:
-        model = FacilityType
-    
-    id = fields.Integer(dump_only=True)
-    facility_type = fields.String(required=True)
+        # Define the fields to expose
+        fields = ("id", "facility_type")
+
+
+facilitytype_schema = FacilityTypeSchema()
+facilitytypes_schema = FacilityTypeSchema(many=True) 

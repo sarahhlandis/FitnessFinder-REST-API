@@ -1,23 +1,12 @@
-from marshmallow import fields
 from app import ma
-from models.amenities import Amenity
+from marshmallow import fields
 
-class AmenitySchema(ma.SQLAlchemyAutoSchema):
+class AmenitySchema(ma.Schema):
     class Meta:
-        model = Amenity
-    
-    id = fields.Integer(dump_only=True)
-    parking = fields.Boolean(required=False)
-    pool = fields.Boolean(required=False)
-    sauna = fields.Boolean(required=False)
-    steam_room = fields.Boolean(required=False)
-    fuel_bar = fields.Boolean(required=False)
-    pilates = fields.Boolean(required=False)
-    boxing = fields.Boolean(required=False)
-    yoga = fields.Boolean(required=False)
-    private_training = fields.Boolean(required=False)
-    lockers = fields.Boolean(required=False)
-    showers = fields.Boolean(required=False)
+        # Define the fields to expose
+        fields = ("id", "parking", "pool", "sauna", "steam_room", 
+                  "fuel_bar", "pilates", "boxing", "yoga", "private_training", 
+                  "lockers", "showers")
     
 amenity_schema = AmenitySchema()
 amenities_schema = AmenitySchema(many=True) 

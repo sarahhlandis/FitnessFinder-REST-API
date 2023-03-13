@@ -11,7 +11,7 @@ class Promotion(db.Model):
     name = db.Column(db.String(100), nullable=False, default=None)
     start_date = db.Column(db.Date(), nullable=False, default=None)
     end_date = db.Column(db.Date(), nullable=False, default=None)
-    discount = db.Column(db.Integer(), nullable=False)
+    discount_percent = db.Column(db.Integer(), nullable=False)
     
     # Add the foreign keys in the Promotions model
     facility_id = db.Column(db.Integer, db.ForeignKey("facilities.id"), nullable=False)

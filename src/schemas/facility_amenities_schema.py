@@ -1,11 +1,10 @@
-from marshmallow import fields
 from app import ma
-from models.facility_amenities import FacilityAmenity
+from marshmallow import fields
 
-class FacilityAmenitySchema(ma.SQLAlchemyAutoSchema):
+class FacilityAmenitySchema(ma.Schema):
     class Meta:
-        model = FacilityAmenity
-    
-    id = fields.Integer(dump_only=True)
-    facility_id = fields.Integer(required=True)
-    amenity_id = fields.Integer(required=True)
+        # Define the fields to expose
+        fields = ("id", "facility_id", "amenity_id")
+
+facilityamenity_schema = FacilityAmenitySchema()
+facilityamenities_schema = FacilityAmenitySchema(many=True) 
