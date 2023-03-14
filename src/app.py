@@ -47,6 +47,7 @@ def create_app():
     for controller in registerable_controllers:
         app.register_blueprint(controller)
 
+    
     # def init_db():
     #     from models.facility_types import FacilityType
 

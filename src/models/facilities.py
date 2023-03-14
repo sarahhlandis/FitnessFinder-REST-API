@@ -23,17 +23,19 @@ class Facility(db.Model):
     closing_time = db.Column(db.Time(), nullable=False)
 
     # Add the foreign keys in the Facilities model
-    facility_type_id = db.Column(db.Integer, db.ForeignKey("facility_types.id", ondelete='SET NULL'), nullable=True)
+    facility_type = db.Column(db.Integer, db.ForeignKey("facility_types.id", ondelete='SET NULL'), nullable=True)
     owner_id = db.Column(db.Integer, db.ForeignKey("owners.id"), nullable=False)
     address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
     
     # Add the relationships directions to other models
     promotions = db.relationship('Promotion', backref='facility_promotions', lazy=True, cascade="all, delete-orphan")
     address = db.relationship('Address', backref='facility')
-    facility_type = db.relationship('FacilityType', backref='facility_types', lazy=True)
-    owner = db.relationship("Owner", backref="owner_facilities", cascade="all, delete-orphan", single_parent=True)
+    # facility_type = db.relationship('FacilityType', backref='facility_types', lazy=True)
+    owner = db.relationship('Owner', backref="owner_facilities", cascade="all, delete-orphan", single_parent=True)
+    amenities = db.relationship('Amenity', secondary=facility_amenities, lazy='subquery', backref=db.backref('facilities', lazy='dynamic'))
 
 
     # Set up join table with amenities
-    facility_amenities = db.relationship('Amenity', secondary=facility_amenities, lazy='subquery', backref=db.backref('facilities', lazy='dynamic'))
+    # facility_amenities = db.relationship('Amenity', secondary=facility_amenities, lazy='subquery', backref='facilities', lazy='dynamic')
+    facility_amenities = db.relationship('Amenity', secondary=facility_amenities, lazy='subquery', backref='facilities_amenities')
 
