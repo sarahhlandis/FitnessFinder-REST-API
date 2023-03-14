@@ -13,7 +13,6 @@ facility_amenities = Blueprint('facility_amenities', __name__, url_prefix='/faci
 # therefore there is no functionality use for creation of amenity
 
 
-# update only amenities respective to owned facility for logged-in owner
 @facility_amenities.route('/<int:facility_id>/amenities/secure', methods=['PUT'])
 @jwt_required()
 def update_facility_amenities(facility_id):
@@ -26,43 +25,25 @@ def update_facility_amenities(facility_id):
     
     facility = Facility.query.get_or_404(facility_id)
 
-    # create dictionary with all possible amenities
-    amenities = { 
-        'parking': False, 
-        'pool': False,
-        'sauna': False,
-        'steam_room': False,
-        'fuel_bar': False,    
-        'pilates': False,
-        'boxing': False,
-        'yoga': False,
-        'private_training': False,
-        'lockers': False,
-        'showers': False
-    }
-
     # get the amenities selected by the owner
     selected_amenities = request.json.get('amenities', [])
 
-    # update the dictionary with the selected amenities
-    for amenity_name in selected_amenities:
-        if amenity_name in amenities:
-            amenities[amenity_name] = True
+    # remove all current amenities associated with the facility
+    for facility_amenity in facility.facility_amenities:
+        db.session.delete(facility_amenity)
 
-    # use the amenities dictionary to update the facility_amenities table
-    for amenity_name, amenity_value in amenities.items():
+    # add selected amenities to facility_amenities table
+    for amenity_name in selected_amenities:
         amenity = Amenity.query.filter_by(name=amenity_name).first()
         if amenity:
-            if amenity_value and amenity not in facility.amenities:
-                facility.amenities.append(amenity)
-            elif not amenity_value and amenity in facility.amenities:
-                facility.amenities.remove(amenity)
-
+            facility_amenity = facility_amenities(facility_id=facility.id, amenity_id=amenity.id, has_amenity=True)
+            db.session.add(facility_amenity)
 
     db.session.commit()
 
     result = facility_schema.dump(facility)
     return jsonify(result)
+
 
 
 
@@ -86,12 +67,18 @@ def delete_facility_amenities(facility_id):
     for amenity_name in selected_amenities:
         amenity = Amenity.query.filter_by(name=amenity_name).first()
         if amenity and amenity in facility.amenities:
+            # remove the FacilityAmenities object from the database
+            facility_amenity = facility_amenities.query.filter_by(facility_id=facility_id, amenity_id=amenity.id).first()
+            db.session.delete(facility_amenity)
+            # remove the amenity from the list of amenities associated with the facility
             facility.amenities.remove(amenity)
 
     db.session.commit()
 
     result = facility_schema.dump(facility)
     return jsonify(result)
+
+
 
 
 
@@ -111,7 +98,7 @@ def get_facility_amenities(facility_id):
     facility = Facility.query.get_or_404(facility_id)
 
     # use defined SQLAlchemy relationship to get the amenities associated with the facility
-    amenities = facility.amenities.all()
+    amenities = [amenity for amenity in facility.amenities if amenity.has_amenity]
 
     result = amenities_schema.dump(amenities)
 
