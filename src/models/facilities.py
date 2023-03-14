@@ -12,7 +12,7 @@ from app import db
 facility_amenities = db.Table('facility_amenities',
     db.Column('facility_id', db.Integer, db.ForeignKey('facilities.id'), primary_key=True),
     db.Column('amenity_id', db.Integer, db.ForeignKey('amenities.id'), primary_key=True),
-    db.Column('has_amenity', db.Boolean, default=False)
+    db.Column('has_amenity', db.Boolean, default=True)
 )
 
 class Facility(db.Model):
