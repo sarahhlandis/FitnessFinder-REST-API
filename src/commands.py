@@ -21,27 +21,64 @@ def create_db():
     print("Tables created")
 
 
+
+
 @db_commands .cli.command("init")
 def init_db():
-    # check if default facility types have already been added to database
-    if FacilityType.query.first() is not None:
-        print('Default facility types already exist in database.')
-        return
+    try:
+        # check if default facility types have already been added to database
+        if FacilityType.query.first() is not None:
+            print('Default facility types already exist in database.')
+            return
 
-    # add default facility types to the database
-    facility_types = [
-        FacilityType(name="Pilates Studio"),
-        FacilityType(name="Gym"),
-        FacilityType(name="Wellness Center"),
-        FacilityType(name="Yoga Studio"),
-        FacilityType(name="Dance Studio"),
-        FacilityType(name="Athletic Club"),
-        FacilityType(name="Boxing Gym"),
-        # add more facility types as needed
-    ]
-    db.session.add_all(facility_types)
-    db.session.commit()
-    print('Default facility types added to database.')
+        # add default facility types to the database
+        facility_types = [
+            FacilityType(name="Pilates Studio"),
+            FacilityType(name="Gym"),
+            FacilityType(name="Wellness Center"),
+            FacilityType(name="Yoga Studio"),
+            FacilityType(name="Dance Studio"),
+            FacilityType(name="Athletic Club"),
+            FacilityType(name="Boxing Gym"),
+            # add more facility types as needed
+        ]
+        db.session.add_all(facility_types)
+        db.session.commit()
+        print('Default facility types added to database.')
+
+
+        # check if default amenities have already been added to database
+        if Amenity.query.first() is not None:
+            print('Default amenities already exist in database.')
+            return
+        
+        # prepopulate amenities table
+        amenities = [
+            {"name": "parking"},
+            {"name": "pool"},
+            {"name": "sauna"},
+            {"name": "steam_room"},
+            {"name": "fuel_bar"},
+            {"name": "pilates"},
+            {"name": "boxing"},
+            {"name": "yoga"},
+            {"name": "private_training"},
+            {"name": "lockers"},
+            {"name": "showers"}
+            # add more amenities here
+        ]
+
+        for amenity in amenities:
+            db.session.add(Amenity(name=amenity["name"]))
+        db.session.commit()
+
+        print('Default amenities added to database.')
+    except Exception as e:
+        print(f"Error seeding database: {e}")
+        db.session.rollback()
+        raise e
+
+
 
 
 @db_commands .cli.command("seed")
@@ -91,8 +128,11 @@ def seed_db():
         db.session.commit()
 
 
-        amenity1 = Amenity.query.filter_by(sauna=True).first()
-        amenity2 = Amenity.query.filter_by(pool=True).first()
+        # amenity1 = Amenity.query.filter_by(sauna=True).first()
+        # amenity2 = Amenity.query.filter_by(pool=True).first()
+
+        amenity1 = Amenity.query.filter_by(name='sauna').first()
+        amenity2 = Amenity.query.filter_by(name='pool').first()
 
         db.session.add(amenity1)
         db.session.add(amenity2)
@@ -164,13 +204,12 @@ def seed_db():
         db.session.add(facility2)
         db.session.commit()
 
-
-        amenity3 = Amenity.query.filter_by(boxing=True).first()
-        amenity4 = Amenity.query.filter_by(pool=True).first()
-        amenity5 = Amenity.query.filter_by(steam_room=True).first()
-        amenity6 = Amenity.query.filter_by(showers=True).first()
-        amenity7 = Amenity.query.filter_by(fuel_bar=True).first()
-        amenity8 = Amenity.query.filter_by(parking=True).first()
+        amenity3 = Amenity.query.filter_by(name='boxing').first()
+        amenity4 = Amenity.query.filter_by(name='pool').first()
+        amenity5 = Amenity.query.filter_by(name='steam_room').first()
+        amenity6 = Amenity.query.filter_by(name='showers').first()
+        amenity7 = Amenity.query.filter_by(name='fuel_bar').first()
+        amenity8 = Amenity.query.filter_by(name='parking').first()
 
         db.session.add(amenity3)
         db.session.add(amenity4)
@@ -252,8 +291,8 @@ def seed_db():
         db.session.commit()
 
 
-        amenity9 = Amenity.query.filter_by(boxing=True).first()
-        amenity10 = Amenity.query.filter_by(lockers=True).first()
+        amenity9 = Amenity.query.filter_by(name='boxing').first()
+        amenity10 = Amenity.query.filter_by(name='lockers').first()
 
         db.session.add(amenity9)
         db.session.add(amenity10)
@@ -315,8 +354,8 @@ def seed_db():
         db.session.commit()
 
         
-        amenity11 = Amenity.query.filter_by(yoga=True).first()
-        amenity12 = Amenity.query.filter_by(private_training=True).first()
+        amenity11 = Amenity.query.filter_by(name='yoga').first()
+        amenity12 = Amenity.query.filter_by(name='private_training').first()
 
         db.session.add(amenity11)
         db.session.add(amenity12)
