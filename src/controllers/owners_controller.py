@@ -126,6 +126,10 @@ def update_owner(owner_id):
     owner.email = owner_fields.get('email', owner.email)
     owner.mobile = owner_fields.get('mobile', owner.mobile)
     owner.password = owner_fields.get('password', owner.password)
+
+    # Hash the owner's password before saving to the database
+    hashed_password = generate_password_hash(owner.password, method='sha256')
+    owner.set_password(hashed_password)
     # commit changes to database
     db.session.commit()
     return jsonify({'message': 'Owner information updated successfully'}), 200

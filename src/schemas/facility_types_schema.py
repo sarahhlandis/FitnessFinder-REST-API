@@ -1,4 +1,3 @@
-from marshmallow import fields
 from app import ma
 
 class FacilityTypeSchema(ma.Schema):

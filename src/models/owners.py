@@ -12,22 +12,22 @@ class Owner(db.Model):
     # Add the rest of the attributes (columns). 
     name = db.Column(db.String(50), nullable=False, unique=True)
     email = db.Column(db.String(50), nullable=False, unique=True)
-    password = db.Column(db.String(15), nullable=False)
+    password = db.Column(db.String(), nullable=False)
     mobile = db.Column(db.String(10), nullable=False, unique=True)
     
     # Add the relationships directions to other models
-    facilities = db.relationship("Facility", backref="facility_owners", cascade="all, delete-orphan")
+    facilities = db.relationship('Facility', backref="facility_owners", cascade="all, delete-orphan")
 
 
-    # Add a validation for the password field to be >= 8 chars
-    @validates('password')
-    def validate_password(self, password):
-        if len(password) < 8:
-            raise ValueError("Password must be at least 8 characters long. Please try again.")
-        return password
+    # # Add a validation for the password field to be >= 8 chars
+    # @validates('password')
+    # def validate_password(self, password):
+    #     if len(password) != 8:
+    #         raise ValueError("Password must be 8 characters long. Please try again.")
+    #     return password
     
-    @validates('mobile')
-    def validate_mobile(self, mobile):
-        if len(mobile) != 10:
-            raise ValueError('Phone number must be 10 digits long.')
+    # @validates('mobile')
+    # def validate_mobile(self, mobile):
+    #     if len(mobile) != 10:
+    #         raise ValueError('Phone number must be 10 digits long.')
         

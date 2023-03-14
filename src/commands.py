@@ -7,6 +7,7 @@ from models.facilities import Facility
 from models.addresses import Address
 from models.promotions import Promotion
 from models.post_codes import PostCode
+from models.facility_types import FacilityType
 
 
 db_commands = Blueprint("db", __name__)
@@ -20,12 +21,36 @@ def create_db():
     print("Tables created")
 
 
+@db_commands .cli.command("init")
+def init_db():
+    # check if default facility types have already been added to database
+    if FacilityType.query.first() is not None:
+        print('Default facility types already exist in database.')
+        return
+
+    # add default facility types to the database
+    facility_types = [
+        FacilityType(name="Pilates Studio"),
+        FacilityType(name="Gym"),
+        FacilityType(name="Wellness Center"),
+        FacilityType(name="Yoga Studio"),
+        FacilityType(name="Dance Studio"),
+        FacilityType(name="Athletic Club"),
+        FacilityType(name="Boxing Gym"),
+        # add more facility types as needed
+    ]
+    db.session.add_all(facility_types)
+    db.session.commit()
+    print('Default facility types added to database.')
+
+
 @db_commands .cli.command("seed")
 def seed_db():
     try:
         # SAMPLE 1
         # Create owners before facilities as owner id is needed in the facility model as an fkey
         owner1 = Owner(
+            name="Jane Doe",
             email="owner1@example.com",
             password=bcrypt.generate_password_hash("hello111").decode("utf-8"),
             mobile="0412345681"
@@ -34,34 +59,56 @@ def seed_db():
         db.session.add(owner1)
         db.session.commit()
 
+        post_code1=PostCode(
+            post_code="2000")
+        
+        db.session.add(post_code1)
+        db.session.commit()
+
+        address1 = Address(
+            street_num=5,
+            street="George Street",
+            suburb="Sydney",
+            state="NSW",
+            post_code_id=post_code1.id
+        )
+
+        db.session.add(address1)
+        db.session.commit()
+
         facility1 = Facility(
             business_name="BodyFit",
             independent=True,
             phone_num="0234567891",
             opening_time="08:00",
             closing_time="18:00",
-            facility_type="Gym"
+            facility_type=2,
+            address_id=address1.id,
+            owner_id=owner1.id
         )
         
-        address1 = Address(
-            street_num=5,
-            street="George Street",
-            suburb="Sydney",
-            state="NSW",
-        )
+        db.session.add(facility1)
+        db.session.commit()
 
-        post_code1=PostCode(post_code="2000")
 
         amenity1 = Amenity.query.filter_by(sauna=True).first()
         amenity2 = Amenity.query.filter_by(pool=True).first()
 
+        db.session.add(amenity1)
+        db.session.add(amenity2)
+        db.session.commit()
+
         promotion1 = Promotion(
             name="Easter offer",
-            discount=15,
+            discount_percent=15,
             start_date=date(2023, 4, 1),
-            end_date=date(2023, 4, 15)
+            end_date=date(2023, 4, 15),
+            facility_id=facility1.id
         )
 
+        db.session.add(promotion1)
+        db.session.commit()
+    
         # associate objects with each other
         facility1.owner = owner1
         facility1.address = address1
@@ -71,15 +118,37 @@ def seed_db():
         facility1.promotions.append(promotion1)
 
         # add all objects to the session and commit changes
-        db.session.add_all([owner1, facility1, address1, post_code1, amenity1, amenity2, promotion1])
+        # db.session.add_all([owner1, facility1, address1, post_code1, amenity1, amenity2, promotion1])
 
         # SAMPLE 2
         # Create owners before facilities as owner id is needed in the facility model as an fkey
         owner2 = Owner(
+            name="Mary Davis",
             email="owner2@example.com",
             password=bcrypt.generate_password_hash("hello222").decode("utf-8"),
             mobile="0412345682"
         )
+
+        db.session.add(owner2)
+        db.session.commit()
+
+        post_code2=PostCode(
+            post_code="2000"
+            )
+        
+        db.session.add(post_code2)
+        db.session.commit()
+
+        address2 = Address(
+            street_num=210,
+            street="Banksia Drive",
+            suburb="Sydney",
+            state="NSW",
+            post_code_id=post_code2.id
+        )
+
+        db.session.add(address2)
+        db.session.commit()
 
         facility2 = Facility(
             business_name="Lifetime",
@@ -87,17 +156,14 @@ def seed_db():
             phone_num="0234567892",
             opening_time="6:00",
             closing_time="20:00",
-            facility_type="Wellness Center"
+            facility_type=3,
+            address_id=address2.id,
+            owner_id=owner2.id
         )
+        
+        db.session.add(facility2)
+        db.session.commit()
 
-        address2 = Address(
-            street_num=210,
-            street="Banksia Drive",
-            suburb="Sydney",
-            state="NSW",
-        )
-
-        post_code2=PostCode(post_code="2000")
 
         amenity3 = Amenity.query.filter_by(boxing=True).first()
         amenity4 = Amenity.query.filter_by(pool=True).first()
@@ -106,12 +172,24 @@ def seed_db():
         amenity7 = Amenity.query.filter_by(fuel_bar=True).first()
         amenity8 = Amenity.query.filter_by(parking=True).first()
 
+        db.session.add(amenity3)
+        db.session.add(amenity4)
+        db.session.add(amenity5)
+        db.session.add(amenity6)
+        db.session.add(amenity7)
+        db.session.add(amenity8)
+        db.session.commit()
+
         promotion2 = Promotion(
             name="March Promo",
-            discount=20,
+            discount_percent=20,
             start_date=date(2023, 3, 1),
-            end_date=date(2023, 3, 31)
+            end_date=date(2023, 3, 31),
+            facility_id=facility2.id
         )
+
+        db.session.add(promotion2)
+        db.session.commit()
 
         # associate objects with each other
         facility2.owner = owner2
@@ -132,10 +210,32 @@ def seed_db():
         # SAMPLE 3
         # Create owners before facilities as owner id is needed in the facility model as an fkey
         owner3 = Owner(
+            name="Alex Johnson",
             email="owner3@example.com",
             password=bcrypt.generate_password_hash("hello333").decode("utf-8"),
             mobile="0412345683"
         )
+
+        db.session.add(owner3)
+        db.session.commit()
+
+        post_code3=PostCode(
+            post_code="2481"
+            )
+        
+        db.session.add(post_code3)
+        db.session.commit()
+
+        address3 = Address(
+            street_num=4,
+            street="Acacia Street",
+            suburb="Byron Bay",
+            state="NSW",
+            post_code_id=post_code3.id
+        )
+
+        db.session.add(address3)
+        db.session.commit()
 
         facility3 = Facility(
             business_name="MindBody Boxing",
@@ -143,20 +243,21 @@ def seed_db():
             phone_num="0234567893",
             opening_time="5:00",
             closing_time="14:00",
-            facility_type="Boxing Gym"
+            facility_type=7,
+            address_id=address3.id,
+            owner_id=owner3.id
         )
 
-        address3 = Address(
-            street_num=4,
-            street="Acacia Street",
-            suburb="Byron Bay",
-            state="NSW",
-        )
+        db.session.add(facility3)
+        db.session.commit()
 
-        post_code3=PostCode(post_code="2481")
 
         amenity9 = Amenity.query.filter_by(boxing=True).first()
         amenity10 = Amenity.query.filter_by(lockers=True).first()
+
+        db.session.add(amenity9)
+        db.session.add(amenity10)
+        db.session.commit()
 
         # associate objects with each other
         facility3.owner = owner3
@@ -172,10 +273,32 @@ def seed_db():
         # SAMPLE 4
         # Create owners before facilities as owner id is needed in the facility model as an fkey
         owner4 = Owner(
+            name="John Smith",
             email="owner4@example.com",
             password=bcrypt.generate_password_hash("hello444").decode("utf-8"),
             mobile="0412345684"
         )
+
+        db.session.add(owner4)
+        db.session.commit()
+
+        post_code4=PostCode(
+            post_code="2267"
+            )
+        
+        db.session.add(post_code4)
+        db.session.commit()
+
+        address4 = Address(
+            street_num=18,
+            street="Cavannbah Road",
+            suburb="Newcastle",
+            state="NSW",
+            post_code_id=post_code4.id
+        )
+
+        db.session.add(address4)
+        db.session.commit()
 
         facility4 = Facility(
             business_name="Space Yoga",
@@ -183,21 +306,21 @@ def seed_db():
             phone_num="0234567894",
             opening_time="9:30", 
             closing_time="19:30",
-            facility_type="Yoga Studio"
+            facility_type=4,
+            address_id=address4.id,
+            owner_id=owner4.id
         )
 
-        address4 = Address(
-            street_num=18,
-            street="Cavannbah Road",
-            suburb="Newcastle",
-            state="NSW",
-        )
+        db.session.add(facility4)
+        db.session.commit()
 
-        post_code4=PostCode(post_code="2267")
-
+        
         amenity11 = Amenity.query.filter_by(yoga=True).first()
         amenity12 = Amenity.query.filter_by(private_training=True).first()
 
+        db.session.add(amenity11)
+        db.session.add(amenity12)
+        db.session.commit()
 
         # associate objects with each other
         facility4.owner = owner4
@@ -213,10 +336,33 @@ def seed_db():
         # SAMPLE 5
         # Create owners before facilities as owner id is needed in the facility model as an fkey
         owner5 = Owner(
+            name="Sally Williams",
             email="owner5@example.com",
             password=bcrypt.generate_password_hash("hello555").decode("utf-8"),
             mobile="0412345685"
         )
+
+        db.session.add(owner5)
+        db.session.commit()
+
+        post_code5=PostCode(
+            post_code="2101")
+        
+        db.session.add(post_code5)
+        db.session.commit()
+
+
+        address5 = Address(
+            street_num=73,
+            street="Castlereagh Street",
+            suburb="Newport",
+            state="NSW",
+            post_code_id=post_code5.id
+        )
+
+        db.session.add(address5)
+        db.session.commit()
+
 
         facility5 = Facility(
             business_name="Pilates101",
@@ -224,17 +370,14 @@ def seed_db():
             phone_num="0234567895",
             opening_time="6:30", 
             closing_time="18:30",
-            facility_type="Pilates Studio"
+            facility_type=1,
+            address_id=address5.id,
+            owner_id=owner5.id
         )
     
-        address5 = Address(
-            street_num=73,
-            street="Castlereagh Street",
-            suburb="Newport",
-            state="NSW",
-        )
+        db.session.add(facility5)
+        db.session.commit()
 
-        post_code5=PostCode(post_code="2101")
 
         # associate objects with each other
         facility5.owner = owner5
@@ -259,3 +402,5 @@ def seed_db():
 def drop_db():
     db.drop_all()
     print("Tables dropped") 
+
+
