@@ -52,7 +52,8 @@ def get_facilities_by_type(facility_type):
 
 
 
-
+# THIS RETURNS ANY FACILITIES THAT HAVE ATLEAST 1 OF SPECIFIED AMENS. 
+# CHECK FUNCTIONALITY AND/OR
 # 4
 # query facilities based on an amenity list
 # returns all facilities that have the specified amenities
@@ -70,9 +71,23 @@ def get_facilities_by_amenities(amenity_ids):
 
 
 
-# THIS RETURNS IF EITHER TIME IS WITHIN BOUNDS. CHECK OVER DESIRED FUNCTIONALITY AND VS OR
-# 5 
-# # query all facilities of a specific type that are open for certain hours
+# 5
+# query facilities based on specified opening/closing hours
+@public.route('/facilities/hours/<string:opening_time>/<string:closing_time>', methods=['GET'])
+def facilities_hours(opening_time, closing_time):
+    facilities = Facility.query.filter(Facility.opening_time <= opening_time)\
+                              .filter(Facility.closing_time >= closing_time)\
+                              .all()
+    result = facilities_schema.dump(facilities)
+    return jsonify(result)
+
+
+
+
+# THIS RETURNS IF EITHER TIME IS WITHIN BOUNDS. 
+# CHECK OVER DESIRED FUNCTIONALITY AND VS OR
+# 6
+# query all facilities of a specific type that are open for certain hours
 @public.route('/facilities/<string:facility_type>/hours/<string:opening_time>/<string:closing_time>', methods=['GET'])
 def get_facilities_open_hours(facility_type, opening_time, closing_time):
     facilities = Facility.query.filter_by(facility_type=facility_type)\
@@ -85,7 +100,7 @@ def get_facilities_open_hours(facility_type, opening_time, closing_time):
 
 
 
-# 6
+# 7
 # query all facilities in a specified post_code that have the specified amenities
 # returns all facilities within post_code and also have desired amenities
 @public.route('/facilities/postcode/<string:post_code>/amenities/<string:amenity_ids>', methods=['GET'])
@@ -106,7 +121,7 @@ def local_facilities_with_amenities(post_code, amenity_ids):
 
 
 
-# 7
+# 8
 # query all facilities that are running promotions in a specified post_code
 # returns all facilities within post_code that are also running promotions
 @public.route('/facilities/postcode/<string:post_code>/promotions', methods=['GET'])

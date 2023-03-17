@@ -15,6 +15,6 @@ def get_facility_types():
     facility_types_dict = {}
     for facility_type in facility_types:
         facility_types_dict[facility_type.id] = facility_type.name
-    return jsonify(facility_types_dict)
+    return jsonify(facility_types_dict) 
 
 

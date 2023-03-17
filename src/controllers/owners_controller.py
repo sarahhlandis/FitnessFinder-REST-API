@@ -13,7 +13,7 @@ from schemas.owners_schema import owner_schema, owners_schema
 auth = Blueprint('auth', __name__, url_prefix="/login")
 owners = Blueprint('owners', __name__, url_prefix='/owners')
 
-
+# 1
 # authenticate an existing owner 
 @auth.route("/login/secure", methods=["POST"])
 def auth_login():
@@ -42,11 +42,14 @@ def auth_login():
     return jsonify({"access_token": access_token}), 200
 
 
+
+
+# 2
 # Register a new owner
 @owners.route('/register/secure', methods=['POST'])
 def register():
     # Load and validate the request data using OwnerSchema
-    owner_fields = owner_schema.load(request.json)
+    owner_fields = owner_schema.load(request.json, partial=False)
 
     # Extract the validated data from the fields dictionary
     name = owner_fields['name']
@@ -89,11 +92,12 @@ def register():
 
         
 
-
+# 3
 # retrieve details of a logged-in owner
 @owners.route('/<int:owner_id>/secure', methods=['GET'])
 @jwt_required()
 def get_owner(owner_id):
+    # try:
     # Verify access
     access_check = verify_owner_access(owner_id)
     if access_check:
@@ -102,10 +106,11 @@ def get_owner(owner_id):
     owner = Owner.query.get(owner_id)
     # return owner details that match
     return jsonify({'owner':owner_schema.dump(owner)}), 200
+   #except
 
 
 
-
+# 4
 # update details of a logged-in owner
 @owners.route('/<int:owner_id>/secure', methods=['PUT'])
 @jwt_required()
@@ -136,6 +141,8 @@ def update_owner(owner_id):
 
 
 
+
+# 5
 # delete account of a logged-in owner
 @owners.route('/account/secure', methods=['DELETE'])
 @jwt_required()

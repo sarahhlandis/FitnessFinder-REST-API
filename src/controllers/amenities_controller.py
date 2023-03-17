@@ -8,6 +8,7 @@ from schemas.amenities_schema import amenities_schema, amenity_schema
 from utilities import *
 
 facility_amenities = Blueprint('facility_amenities', __name__, url_prefix='/facilities_amenities')
+amenities = Blueprint('amenities', __name__, url_prefix='/amenities')
 
 # owners cannot create new amenities - these are prepopulated into the database 
 # therefore there is no functionality use for creation of amenity
@@ -82,8 +83,6 @@ def delete_facility_amenities(facility_id):
 
 
 
-
-
 # retrieve all amenities for a specified facility by a logged-in owner
 @facility_amenities.route('/<int:facility_id>/amenities/secure', methods=['GET'])
 @jwt_required()
@@ -103,3 +102,15 @@ def get_facility_amenities(facility_id):
     result = amenities_schema.dump(amenities)
 
     return jsonify(result)
+
+
+
+
+# retrieve all amenities and their id assignments
+@amenities.route('/all_amenities', methods=['GET'])
+def get_amenities():
+    amenities = Amenity.query.all()
+    amenities_dict = {}
+    for amenity in amenities:
+        amenities_dict[amenity.id] = amenity.name
+    return jsonify(amenities_dict)

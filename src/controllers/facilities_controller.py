@@ -125,7 +125,7 @@ def create_facility():
     if 'amenities' in request.json:
         for amenity_data in request.json['amenities']:
             facility_amenity_fields = facilityamenity_schema.load(amenity_data)
-            facility_amenity = FacilityAmenity(**facility_amenity_fields, facility_id=facility.id)
+            facility_amenity = Facility.facility_amenities(**facility_amenity_fields, facility_id=facility.id)
             db.session.add(facility_amenity)
         db.session.commit()
 

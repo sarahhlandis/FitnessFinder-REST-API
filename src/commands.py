@@ -126,6 +126,16 @@ def seed_db():
             mobile="0412345685"
         )
         db.session.add(owner5)
+
+        owner6 = Owner(
+            name="Will Brown",
+            email="owner6@example.com",
+            password=bcrypt.generate_password_hash("hello666").decode("utf-8"),
+            mobile="0412345686"
+        )
+        db.session.add(owner6)
+
+
         # commit all owner entries to database
         db.session.commit()
 
@@ -155,8 +165,12 @@ def seed_db():
         post_code5=PostCode(
             post_code="2101"
         )
-        
         db.session.add(post_code5)
+
+        post_code6=PostCode(
+            post_code="2481"
+        )
+        db.session.add(post_code6)
 
         # commit all post_code entries to database
         db.session.commit()
@@ -208,6 +222,15 @@ def seed_db():
             post_code_id=post_code5.id
         )
         db.session.add(address5)
+
+        address6 = Address(
+            street_num=5,
+            street="Browning Street",
+            suburb="Byron Bay",
+            state="NSW",
+            post_code_id=post_code6.id
+        )
+        db.session.add(address6)
     
         # commit all address entries to database
         db.session.commit()
@@ -275,6 +298,18 @@ def seed_db():
         )
         db.session.add(facility5)
 
+        facility6 = Facility(
+            business_name="Pure Barre",
+            independent=False,
+            phone_num="0234567896",
+            opening_time="8:00", 
+            closing_time="18:00",
+            facility_type=1,
+            address_id=address6.id,
+            owner_id=owner6.id
+        )
+        db.session.add(facility6)
+
         # commit all facility entries to database
         db.session.commit()
 
@@ -312,6 +347,12 @@ def seed_db():
         db.session.add(amenity11)
         db.session.add(amenity12)
 
+        amenity13 = Amenity.query.filter_by(name='yoga').first()
+        amenity14 = Amenity.query.filter_by(name='pilates').first()
+
+        db.session.add(amenity13)
+        db.session.add(amenity14)
+
         # commit all amenity entries to database
         db.session.commit()
 
@@ -334,6 +375,15 @@ def seed_db():
             facility_id=facility2.id
         )
         db.session.add(promotion2)
+
+        promotion3 = Promotion(
+            name="Beginner's Barre Special",
+            discount_percent=5,
+            start_date=date(2023, 3, 1),
+            end_date=date(2023, 9, 30),
+            facility_id=facility6.id
+        )
+        db.session.add(promotion3)
 
         # commit all promotion entries to database
         db.session.commit()
@@ -378,6 +428,13 @@ def seed_db():
         facility5.owner = owner5
         facility5.address = address5
         facility5.post_code = post_code5
+
+        # associate objects with each other
+        facility6.owner = owner6
+        facility6.address = address6
+        facility6.post_code = post_code6
+        facility6.amenities.append(amenity13)
+        facility6.amenities.append(amenity14)
 
         db.session.commit()
         print("Database seeded!")

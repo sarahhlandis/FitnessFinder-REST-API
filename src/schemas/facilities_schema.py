@@ -26,7 +26,10 @@ class FacilitySchema(ma.Schema):
     # amenities = ma.Nested("AmenitySchema", many=True)
     amenities = fields.List(fields.Nested("FacilityAmenitySchema"))
     promotions = fields.List(fields.Nested("PromotionSchema"))
-    
+
+    # Nested field to include facility type with name
+    # don't forget to add "facility_type" into fields at the top to expose
+    # facility_type = fields.Nested(FacilityTypeSchema, attribute='facility_type', only=('name',))
 
    
     
