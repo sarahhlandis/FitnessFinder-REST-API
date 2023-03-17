@@ -2,22 +2,33 @@ from marshmallow import fields, validates_schema, validate, ValidationError
 from marshmallow.fields import Length
 from app import ma
 from datetime import time
+from schemas.amenities_schema import AmenitySchema
+from schemas.facility_amenities_schema import FacilityAmenitySchema
+from schemas.facility_types_schema import FacilityTypeSchema
+from schemas.addresses_schema import AddressSchema
 
 class FacilitySchema(ma.Schema):
     class Meta:
+        ordered = True
         # Define the fields to expose
-        fields = ("id", "business_name", "independent", "phone_num", "opening_time", 
+        fields = ("business_name", "independent", "phone_num", "opening_time", 
                 "closing_time", "address", "amenities", "promotions")
         
-        load_only = ["owner_id","facility_type_id","address_id"]
+        load_only = ["owner_id","facility_type_id","address_id", "id"]
         
-    address = ma.Nested("AddressSchema")
-    amenities = fields.List(fields.Nested("FacilityAmenitySchema"))
-    promotions = fields.List(fields.Nested("PromotionSchema"))
-
     phone_num = fields.String(required=True, validate=[Length(equal=10), validate.Regexp('^\d+$')])
     opening_time = fields.Time(required=True, format='%H:%M')
     closing_time = fields.Time(required=True, format='%H:%M')
+
+    # address = ma.Nested("AddressSchema")
+    address = ma.Nested(AddressSchema)
+
+    # amenities = ma.Nested("AmenitySchema", many=True)
+    amenities = fields.List(fields.Nested("FacilityAmenitySchema"))
+    promotions = fields.List(fields.Nested("PromotionSchema"))
+    
+
+   
     
 
     @validates_schema

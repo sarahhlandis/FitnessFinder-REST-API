@@ -2,49 +2,58 @@ from flask import jsonify, Blueprint
 from models.facilities import Facility
 from schemas.facilities_schema import facilities_schema
 # from models.facility_amenities import FacilityAmenity
+from models.facility_types import FacilityType
 from models.promotions import Promotion
 from models.amenities import Amenity
 from models.addresses import Address
-from sqlalchemy import desc
+from models.post_codes import PostCode
+from models.facilities import facility_amenities
+from sqlalchemy import cast, String, text, and_
+from sqlalchemy.orm import joinedload, subqueryload
+from sqlalchemy.sql import exists
 from datetime import datetime
+from app import db
 
 public = Blueprint('public', __name__, url_prefix='/public')
 
+# 1
 # query facilities based on post_code
 # returns all facilities with specified post_code will be returned
 @public.route('/facilities/postcode/<string:post_code>', methods=['GET'])
 def get_facilities_by_postcode(post_code):
-    facilities = Facility.query.filter_by(post_code=post_code).all()
+    facilities = db.session.query(Facility).join(Address).join(PostCode).filter(PostCode.post_code == post_code).all()
     result = facilities_schema.dump(facilities)
     return jsonify(result)
 
 
 
 
-
+# 2
 # query facilities based on promotion end date
 # returns all facilities with running promotions that have not yet expired from day of query
 @public.route('/facilities/promotions/current', methods=['GET'])
 def get_upcoming_promotions():
     current_time = datetime.now()
-    facilities = Facility.query.filter(Facility.promotions.any(Promotion.end_date >= current_time)).order_by(Promotion.end_date).all()
+    facilities = Facility.query.join(Promotion).filter(Promotion.end_date >= current_time).order_by(Promotion.end_date).all()
     result = facilities_schema.dump(facilities)
     return jsonify(result)
 
 
 
 
+# 3
 # query facilities based on facility_type
 # returns all facilities that are classed as specified facility type
 @public.route('/facilities/type/<string:facility_type>', methods=['GET'])
 def get_facilities_by_type(facility_type):
-    facilities = Facility.query.filter_by(facility_type=facility_type).all()
+    facilities = Facility.query.join(FacilityType).filter(FacilityType.name == facility_type).all()
     result = facilities_schema.dump(facilities)
     return jsonify(result)
 
 
 
 
+# 4
 # query facilities based on an amenity list
 # returns all facilities that have the specified amenities
 @public.route('/amenities/<string:amenity_ids>', methods=['GET'])
@@ -60,17 +69,23 @@ def get_facilities_by_amenities(amenity_ids):
 
 
 
-# query all facilities of a specific type that are open for certain hours
-@public.route('/facilities/<string:facility_type>/hours/<string:hours_of_op>', methods=['GET'])
-def get_facilities_open_hours(facility_type, hours_of_op):
-    facilities = Facility.query.filter_by(facility_type=facility_type, hours_of_op=hours_of_op).all()
+
+# THIS RETURNS IF EITHER TIME IS WITHIN BOUNDS. CHECK OVER DESIRED FUNCTIONALITY AND VS OR
+# 5 
+# # query all facilities of a specific type that are open for certain hours
+@public.route('/facilities/<string:facility_type>/hours/<string:opening_time>/<string:closing_time>', methods=['GET'])
+def get_facilities_open_hours(facility_type, opening_time, closing_time):
+    facilities = Facility.query.filter_by(facility_type=facility_type)\
+                              .filter(Facility.opening_time <= opening_time)\
+                              .filter(Facility.closing_time >= closing_time)\
+                              .all()
     result = facilities_schema.dump(facilities)
     return jsonify(result)
 
 
 
 
-
+# 6
 # query all facilities in a specified post_code that have the specified amenities
 # returns all facilities within post_code and also have desired amenities
 @public.route('/facilities/postcode/<string:post_code>/amenities/<string:amenity_ids>', methods=['GET'])
@@ -81,8 +96,8 @@ def local_facilities_with_amenities(post_code, amenity_ids):
     # Query facilities with matching postcode and amenities
     facilities = Facility.query \
         .join(Facility.address) \
-        .join(Facility.amenities) \
-        .filter(Address.post_code == post_code, FacilityAmenity.id.in_(amenity_ids_list)) \
+        .join(Facility.facility_amenities) \
+        .filter(and_(Address.post_code.has(post_code=post_code), Facility.facility_amenities.any(Amenity.id.in_(amenity_ids_list)))) \
         .all()
     
     result = facilities_schema.dump(facilities)
@@ -91,6 +106,7 @@ def local_facilities_with_amenities(post_code, amenity_ids):
 
 
 
+# 7
 # query all facilities that are running promotions in a specified post_code
 # returns all facilities within post_code that are also running promotions
 @public.route('/facilities/postcode/<string:post_code>/promotions', methods=['GET'])
@@ -99,7 +115,7 @@ def local_with_promotions(post_code):
     facilities = Facility.query \
         .join(Facility.address) \
         .join(Facility.promotions) \
-        .filter(Address.post_code == post_code, Promotion.start_date <= datetime.now(), Promotion.end_date >= datetime.now()) \
+        .filter(Address.post_code.has(post_code=post_code), Promotion.start_date <= datetime.now(), Promotion.end_date >= datetime.now()) \
         .all()
     
     result = facilities_schema.dump(facilities)

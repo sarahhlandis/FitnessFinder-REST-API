@@ -47,29 +47,4 @@ def create_app():
     for controller in registerable_controllers:
         app.register_blueprint(controller)
 
-    
-    # def init_db():
-    #     from models.facility_types import FacilityType
-
-    #     # check if default facility types have already been added to database
-    #     if FacilityType.query.first() is not None:
-    #         print('Default facility types already exist in database.')
-    #         return
-
-    #     # add default facility types to the database
-    #     facility_types = [
-    #         FacilityType(name="Pilates Studio"),
-    #         FacilityType(name="Gym"),
-    #         FacilityType(name="Wellness Center"),
-    #         FacilityType(name="Yoga Studio"),
-    #         FacilityType(name="Dance Studio"),
-    #         FacilityType(name="Athletic Club"),
-    #         FacilityType(name="Boxing Gym"),
-    #         # add more facility types as needed
-    #     ]
-    #     with app.app_context():
-    #         with db.session.begin():
-    #             db.session.add_all(facility_types)
-    
-    # init_db()
     return app

@@ -395,3 +395,18 @@ def seed_db():
 def drop_db():
     db.drop_all()
     print("Tables dropped") 
+
+
+    
+# cli command to restart db after some changes
+@db_commands .cli.command("reset")
+def reset_db():
+    db.drop_all()
+    print("Tables dropped")
+
+    db.create_all()
+    print("Tables created")
+
+    init_db()
+    seed_db()
+    print("Tables seeded")

@@ -7,8 +7,11 @@ ma = Marshmallow()
 
 class OwnerSchema(ma.Schema):
     class Meta:
+        ordered = True
         # Define the fields to expose
-        fields = ("id", "name", "email", "mobile", "password")
+        fields = ("name", "email", "mobile", "password")
+
+        load_only = ["id"]
 
     # set the password's length to exactly 8 character long
     password = ma.String(validate=[Length(equal=8)])

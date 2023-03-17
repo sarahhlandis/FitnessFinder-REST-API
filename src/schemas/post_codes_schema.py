@@ -8,6 +8,8 @@ class PostCodeSchema(ma.Schema):
     class Meta:
         # Define the fields to expose
         fields = ("id", "post_code")
+
+        load_only = ["id"]
     
     post_code = fields.String(required=True, validate=[Length(equal=4), validate.Regexp('^\d+$')])
 

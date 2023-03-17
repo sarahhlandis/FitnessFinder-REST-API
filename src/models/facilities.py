@@ -29,7 +29,7 @@ class Facility(db.Model):
     closing_time = db.Column(db.Time(), nullable=False)
 
     # Add the foreign keys in the Facilities model
-    facility_type = db.Column(db.Integer, db.ForeignKey("facility_types.id", ondelete='SET NULL'), nullable=True)
+    facility_type = db.Column(db.Integer, db.ForeignKey("facility_types.id"), nullable=False)
     owner_id = db.Column(db.Integer, db.ForeignKey("owners.id"), nullable=False)
     address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
     

@@ -6,10 +6,11 @@ from models.promotions import Promotion
 
 class PromotionSchema(ma.Schema):
     class Meta:
+        ordered = True
         # define the fields to expose
-        fields = ("id", "name", "start_date", "end_date", "discount_percent")
+        fields = ("name", "start_date", "end_date", "discount_percent")
         # foreign key fields
-        load_only = ["facility_id"]
+        load_only = ["facility_id", "id"]
     
     name = fields.String(max=100)
     discount_percent = fields.Integer(validate=Range(min=0, max=100))
@@ -22,8 +23,8 @@ class PromotionSchema(ma.Schema):
         if data["start_date"].date() >= data["end_date"].date():
             raise ValidationError("Start date must be before end date")
         
-    start_date = fields.DateTime(format='%m-%d-%Y', validate=validate_dates)
-    end_date = fields.DateTime(format='%m-%d-%Y')
+    start_date = fields.DateTime(format='%d-%m-%Y', validate=validate_dates)
+    end_date = fields.DateTime(format='%d-%m-%Y')
         
 promotion_schema = PromotionSchema()
 promotions_schema = PromotionSchema(many=True)
