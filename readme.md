@@ -280,7 +280,6 @@ Progress as of March 13
 ![project_mid](/docs/trello_board5.png)
 
 
-
 ## Sources
 [^1]: EDUCBA. (2020). What is ORM? | How ORM Works? | A Quick Glance of ORM Features. [online] Available at: https://www.educba.com/what-is-orm/.
 
