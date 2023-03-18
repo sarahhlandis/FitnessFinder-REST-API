@@ -1,14 +1,9 @@
 from datetime import time
-# from models import facility_amenities
 from models.facility_types import FacilityType
 from app import db
 
 
-# facility_amenities = db.Table('facility_amenities',
-#     db.Column('facility_id', db.Integer, db.ForeignKey('facilities.id'), primary_key=True),
-#     db.Column('amenity_id', db.Integer, db.ForeignKey('amenities.id'), primary_key=True)
-# )
-
+# define the join table for facility amenities (many-many)
 facility_amenities = db.Table('facility_amenities',
     db.Column('facility_id', db.Integer, db.ForeignKey('facilities.id'), primary_key=True),
     db.Column('amenity_id', db.Integer, db.ForeignKey('amenities.id'), primary_key=True),
@@ -30,7 +25,7 @@ class Facility(db.Model):
 
     # Add the foreign keys in the Facilities model
     facility_type = db.Column(db.Integer, db.ForeignKey("facility_types.id"), nullable=False)
-    owner_id = db.Column(db.Integer, db.ForeignKey("owners.id"), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey("owners.id", ondelete='CASCADE'), nullable=False)
     address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
     
     # Add the relationships directions to other models
@@ -41,7 +36,6 @@ class Facility(db.Model):
     amenities = db.relationship('Amenity', secondary=facility_amenities, lazy='subquery', backref=db.backref('facilities', lazy='dynamic'))
 
 
-    # Set up join table with amenities
-    # facility_amenities = db.relationship('Amenity', secondary=facility_amenities, lazy='subquery', backref='facilities', lazy='dynamic')
-    facility_amenities = db.relationship('Amenity', secondary=facility_amenities, lazy='subquery', backref='facilities_amenities')
+    # # Set up join table with amenities
+    # facility_amenities = db.relationship('Amenity', secondary=facility_amenities, lazy='subquery', backref='facilities_amenities', extend_existing=True)
 

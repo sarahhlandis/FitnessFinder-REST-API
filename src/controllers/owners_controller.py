@@ -1,12 +1,12 @@
-from flask import jsonify, request, redirect, url_for, Blueprint
+from flask import jsonify, request, redirect, url_for, Blueprint, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from app import db, bcrypt
+from sqlalchemy import text
 from marshmallow import fields
 from utilities import *
 from datetime import timedelta
-from werkzeug.security import generate_password_hash, check_password_hash
 from models.owners import Owner
-from models.facilities import Facility
+from models.facilities import Facility, facility_amenities
 from schemas.owners_schema import owner_schema, owners_schema
 
 
@@ -15,31 +15,35 @@ owners = Blueprint('owners', __name__, url_prefix='/owners')
 
 # 1
 # authenticate an existing owner 
-@auth.route("/login/secure", methods=["POST"])
+@auth.route("/secure", methods=["POST"])
 def auth_login():
-    # Define the owner schema fields
-    # name = fields.String(required=True)
-    email = fields.Email(required=True)
-    password = fields.String(required=True)
-    owner_schema.load(request.json)
+        # define the owner schema fields
+        email = fields.Email(required=True)
+        password = fields.String(required=True)
+        
+        # load and validate the request data using OwnerSchema
+        owner_fields = owner_schema.load(request.json)
 
-    # Find the owner in the database by email
-    owner = Owner.query.filter_by(email=email).first()
+        # find the owner in the database by email
+        owner = Owner.query.filter_by(email=owner_fields["email"]).first()
 
-    # If the owner is not found, redirect to the register route
-    if not owner:
-        return redirect(url_for('owners.register'))
+        # if the owner is not found, redirect to the register route
+        if not owner:
+            return jsonify({"error": "Owner email does not exist."}), 405
+            return redirect(url_for('owners.register'))
 
-    # If the owner is not found or the password is incorrect, return an error
-    if not bcrypt.check_password_hash(owner.password, password):
-        return jsonify({"error": "Invalid password, please try again."}), 401
 
-    # Generate an access token with the owner's ID as the identity
-    expiry = timedelta(days=1)
-    access_token = create_access_token(identity=owner.email, expires_delta=expiry)
+        # if the owner is not found or the password is incorrect, return an error
+        if owner and not bcrypt.check_password_hash(owner.password, owner_fields["password"]):
+            return jsonify({"error": "Invalid password, please try again."}), 401
 
-    # Return the access token to the owner
-    return jsonify({"access_token": access_token}), 200
+        # generate an access token with the owner's ID as the identity
+        expiry = timedelta(days=1)
+        access_token = create_access_token(identity=owner.id, expires_delta=expiry)
+
+        # return the access token to the owner
+        return jsonify({"access_token": access_token}), 200
+    
 
 
 
@@ -60,35 +64,25 @@ def register():
     # Check if owner already exists in the database
     existing_owner = Owner.query.filter_by(email=email).first()
 
-    if existing_owner is not None:
-        # if the owner is found, check the password
-        if existing_owner.check_password(password):
-            # generate an access token and return it
-            access_token = create_access_token(identity=email)
-            return jsonify({'access_token': access_token}), 200
-        else:
-            # if the password is incorrect, return an error message
-            return jsonify({'error': 'Invalid password. Please try again'}), 401
-    else:
-        # if the owner is not found, ask if they want to register as a new owner
-        register = owner_fields.get('register')
+    if existing_owner:
+       return jsonify({"error": "You already have an account. Please login."}), 400
 
-        if register:
-            # create a new owner with the provided name, email, password, and mobile
-            owner = Owner(name=name, email=email, mobile=mobile, password=password)
-            # Hash the owner's password before saving to the database
-            hashed_password = generate_password_hash(password, method='sha256')
-            owner.set_password(hashed_password)
+    owner = Owner(name=name,
+              email=email,
+              mobile=mobile,
+              # Hash the owner's password before saving to the database
+              password=bcrypt.generate_password_hash(password).decode('utf-8'))
+            
 
-            # add and commit new owner to db
-            db.session.add(owner)
-            db.session.commit()
-            # generate an access token and return it
-            access_token = create_access_token(identity=email)
-            return jsonify({'access_token': access_token}), 200
-        else:
-            # if the owner doesn't want to register, return an error message
-            return jsonify({'error': 'Invalid email'}), 401
+    # add and commit new owner to db
+    db.session.add(owner)
+    db.session.commit()
+
+    # generate an access token and return it
+    access_token = create_access_token(identity=owner.id)
+    return jsonify({'access_token': access_token}), 200
+
+
 
         
 
@@ -97,16 +91,20 @@ def register():
 @owners.route('/<int:owner_id>/secure', methods=['GET'])
 @jwt_required()
 def get_owner(owner_id):
-    # try:
-    # Verify access
-    access_check = verify_owner_access(owner_id)
-    if access_check:
-        return access_check
+    try:
+        # verify access
+        access_check = verify_ownerdetails_access(owner_id)
+        if access_check:
+            return access_check
 
-    owner = Owner.query.get(owner_id)
-    # return owner details that match
-    return jsonify({'owner':owner_schema.dump(owner)}), 200
-   #except
+        owner = Owner.query.get(owner_id)
+
+        # return owner details that match
+        return jsonify({'owner':owner_schema.dump(owner)}), 200
+    except:
+        return jsonify({'error': 'Invalid owner ID'}), 404
+
+
 
 
 
@@ -116,15 +114,15 @@ def get_owner(owner_id):
 @jwt_required()
 def update_owner(owner_id):
     # Verify access
-    access_check = verify_owner_access(owner_id)
+    access_check = verify_ownerdetails_access(owner_id)
     if access_check:
         return access_check
-    
+
     # retrieve the owner from the database
     owner = Owner.query.get(owner_id)
 
     # load the owner schema fields from the request data
-    owner_fields = owner_schema.load(request.json)
+    owner_fields = owner_schema.load(request.json, partial=True)
 
     # update the owner details with the loaded data
     owner.name = owner_fields.get('name', owner.name)
@@ -132,12 +130,14 @@ def update_owner(owner_id):
     owner.mobile = owner_fields.get('mobile', owner.mobile)
     owner.password = owner_fields.get('password', owner.password)
 
-    # Hash the owner's password before saving to the database
-    hashed_password = generate_password_hash(owner.password, method='sha256')
-    owner.set_password(hashed_password)
+    # hash the owner's password before saving to the database
+    hashed_password = bcrypt.generate_password_hash(owner.password).decode('utf-8')
+    owner.password = hashed_password
+
     # commit changes to database
     db.session.commit()
     return jsonify({'message': 'Owner information updated successfully'}), 200
+
 
 
 
@@ -149,23 +149,19 @@ def update_owner(owner_id):
 def delete_account():
     owner_id = get_jwt_identity()
 
-    # Verify if owner has access
-    access_check = verify_owner_access(owner_id)
+    # verify if owner has access
+    access_check = verify_ownerdetails_access(owner_id)
     if access_check:
         return access_check
 
     # retrieve the owner from the database
     owner = Owner.query.get(owner_id)
+    
+    # delete all facilities associated with the owner
+    for facility in owner.facilities:
+        db.session.delete(facility)
 
-    # Verify if owner's details match the account they are trying to delete
-    owner_fields = request.json
-    if owner.name != owner_fields.get('name') or owner.email != owner_fields.get('email') or owner.mobile != owner_fields.get('mobile'):
-        return jsonify({'error': 'Unauthorized access'}), 401
-
-    # Delete all facilities associated with the owner's account
-    Facility.query.filter_by(owner_id=owner_id).delete()
-
-    # Delete the owner's account
+    # delete the owner's account
     db.session.delete(owner)
     db.session.commit()
 

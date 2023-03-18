@@ -1,5 +1,4 @@
-from marshmallow import fields, validate, validates_schema, ValidationError
-from functools import partial
+from marshmallow import fields, validate, validates, ValidationError
 from flask_marshmallow import Marshmallow
 from marshmallow.validate import Length
 from models.owners import Owner
@@ -11,8 +10,7 @@ class OwnerSchema(ma.Schema):
         ordered = True
         # Define the fields to expose
         fields = ("name", "email", "mobile", "password")
-
-        load_only = ["id"]
+        load_only = ["id", "password"]
 
     # set the password's length to exactly 8 character long
     password = ma.String(validate=[Length(equal=8)])
@@ -22,15 +20,15 @@ class OwnerSchema(ma.Schema):
     facilities = fields.List(fields.Nested("FacilitySchema", many=True, exclude=('owner', )))
 
     # validate mobile number length
-    @validates_schema
-    def validate_mobile(self, data):
-        if len(data['mobile']) != 10:
+    @validates('mobile')
+    def validate_mobile(self, mobile):
+        if len(mobile) != 10:
             raise ValidationError('Phone number must be 10 digits long. Please try again.')
         
     # validate password length
-    @validates_schema
-    def validate_password(self, data):
-        if len(data['password']) != 8:
+    @validates('password')
+    def validate_password(self, password):
+        if len(password) != 8:
             raise ValidationError('Please enter a valid password - must be exactly 8 characters.')
     
 

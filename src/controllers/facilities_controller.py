@@ -16,9 +16,9 @@ from models.post_codes import PostCode
 from utilities import *
 
 facilities = Blueprint('facilities', __name__, url_prefix="/facilities")
-facility_amenities = Blueprint('facility_amenities', __name__, url_prefix='/facilities_amenities')
+# facility_amenities = Blueprint('facility_amenities', __name__, url_prefix='/facilities_amenities')
 
-
+# 1
 # retrieve a list of all facilities owned by logged-in owner
 @facilities.route('/secure', methods=["GET"])
 @jwt_required()
@@ -26,13 +26,14 @@ def facilities_list():
     # get owner id from access token
     owner_id = get_jwt_identity()
 
-    # verify access
-    access_error = verify_owner_access(None, owner_id)
-    if access_error:
-        return access_error
-
     # retrieve all facilities associated with the owner id
     facilities = Facility.query.filter_by(owner_id=owner_id).all()
+
+    # verify access for all facilities
+    facility_ids = [facility.id for facility in facilities]
+    access_error = verify_owner_access(facility_ids, owner_id)
+    if access_error:
+        return access_error
 
     # serialize the facilities using FacilitySchema
     result = facilities_schema.dump(facilities)
@@ -43,6 +44,7 @@ def facilities_list():
 
 
 
+# 2
 # retrieve a specific facility of a logged-in owner
 @facilities.route('/<int:facility_id>/secure', methods=['GET'])
 @jwt_required()
@@ -63,7 +65,7 @@ def get_owned_facility(facility_id):
 
 
 
-
+# 3
 # create a new facility for logged-in owner (with or without existing owned facility)
 @facilities.route('/secure', methods=['POST'])
 @jwt_required()
@@ -145,7 +147,7 @@ def create_facility():
 
 
 
-
+# 4
 # deletion of specific facility unless owner only has 1 facility, in which case, must delete account
 @facilities.route('/<int:facility_id>/secure', methods=['DELETE'])
 @jwt_required()
@@ -215,7 +217,88 @@ def delete_facility(facility_id):
 #     return jsonify(result)
 
 
+# # 5
+# # update a specific facility of a logged-in owner
+# @facilities.route('/<int:facility_id>/secure', methods=['PUT'])
+# @jwt_required()
+# def update_owned_facility(facility_id):
+#     owner_id = get_jwt_identity()
 
+#     # verify access
+#     access_error = verify_owner_access(facility_id, owner_id)
+#     if access_error:
+#         return access_error
+
+#     # retrieve facility from the database
+#     facility = Facility.query.get_or_404(facility_id)
+
+#     # load and validate the request data using FacilitySchema
+#     facility_fields = facility_schema.load(request.json)
+
+#     # update the facility object with the validated data
+#     facility.business_name = facility_fields['business_name']
+#     facility.opening_time = facility_fields['opening_time']
+#     facility.closing_time = facility_fields['closing_time']
+#     facility.address = facility_fields['address']
+#     facility.phone_num = facility_fields['phone_num']
+
+#     # update address
+#     address_fields = address_schema.load(request.json['address'])
+#     facility.address.street_num = address_fields['street_num']
+#     facility.address.street = address_fields['street']
+#     facility.address.suburb = address_fields['suburb']
+#     facility.address.state = address_fields['state']
+
+#     # update address post code
+#     if 'post_code' in request.json['address']:
+#         post_code_value = request.json['address']['post_code']['postcode']
+#         post_code = PostCode.query.filter_by(postcode=post_code_value).first()
+#         if post_code:
+#             # if it does, assign its id to the post_code_id field of the existing Address object
+#             facility.address.post_code_id = post_code.id
+#         else:
+#             # if it doesn't, create a new PostCode object with the provided postcode value,
+#             # assign its id to the post_code_id field of the existing Address object,
+#             # and add the new PostCode object to the database
+#             post_code = PostCode(postcode=post_code_value)
+#             db.session.add(post_code)
+#             db.session.flush()  # this will generate the id for the new PostCode object
+#             facility.address.post_code_id = post_code.id
+
+#     # retrieve a list of all facility_types and their IDs
+#     facility_types = FacilityType.query.all()
+
+
+#     # update facility type to facility object
+#     facility_type_id = request.json.get('facility_type_id')
+#     if facility_type_id is not None:
+#         # validate facility type ID against prepopulated list
+#         facility_ids = []
+#         for facility in owner.facilities:
+#             facility_ids.append(facility.id)
+#         if facility_type_id not in valid_facility_types:
+#             return jsonify({'error': 'Invalid facility type ID'}), 400
+#         facility.facility_type_id = facility_type_id
+
+#     # update amenities
+#     if 'amenities' in request.json:
+#         amenities, errors = facilityamenities_schema.load(request.json['amenities'])
+#         if errors:
+#             return jsonify(errors), 422
+#         facility.amenities = amenities
+
+#     # update promotions
+#     if 'promotions' in request.json:
+#         promotions, errors = promotions_schema.load(request.json['promotions'])
+#         if errors:
+#             return jsonify(errors), 422
+#         facility.promotions = promotions
+
+#     db.session.commit()
+#     result = facility_schema.dump(facility)
+#     return jsonify(result)
+
+# 5
 # update a specific facility of a logged-in owner
 @facilities.route('/<int:facility_id>/secure', methods=['PUT'])
 @jwt_required()
@@ -223,7 +306,7 @@ def update_owned_facility(facility_id):
     owner_id = get_jwt_identity()
 
     # verify access
-    access_error = verify_owner_access(facility_id, owner_id)
+    access_error = access_error = verify_owner_access([facility_id], owner_id)
     if access_error:
         return access_error
 
@@ -231,63 +314,63 @@ def update_owned_facility(facility_id):
     facility = Facility.query.get_or_404(facility_id)
 
     # load and validate the request data using FacilitySchema
-    facility_fields = facility_schema.load(request.json)
+    facility_fields = facility_schema.load(request.json, partial=True)
 
-    # update the facility object with the validated data
-    facility.business_name = facility_fields['business_name']
-    facility.opening_time = facility_fields['opening_time']
-    facility.closing_time = facility_fields['closing_time']
-    facility.address = facility_fields['address']
-    facility.phone_num = facility_fields['phone_num']
+    # update the facility with the new data
+    facility.business_name = facility_fields.get('business_name', facility.business_name)
+    facility.address = facility_fields.get('address', facility.address)
+    facility.phone_num = facility_fields.get('phone_num', facility.phone_num)
+    facility.opening_time = facility_fields.get('opening_time', facility.opening_time)
+    facility.closing_time = facility_fields.get('closing_time', facility.closing_time)
 
-    # update address
-    address_fields = address_schema.load(request.json['address'])
-    facility.address.street_num = address_fields['street_num']
-    facility.address.street = address_fields['street']
-    facility.address.suburb = address_fields['suburb']
-    facility.address.state = address_fields['state']
+    # # update address
+    # address_fields = address_schema.load(request.json['address'])
+    # facility.address.street_num = address_fields['street_num']
+    # facility.address.street = address_fields['street']
+    # facility.address.suburb = address_fields['suburb']
+    # facility.address.state = address_fields['state']
 
-    # update address post code
-    if 'post_code' in request.json['address']:
-        post_code_value = request.json['address']['post_code']['postcode']
-        post_code = PostCode.query.filter_by(postcode=post_code_value).first()
-        if post_code:
-            # if it does, assign its id to the post_code_id field of the existing Address object
-            facility.address.post_code_id = post_code.id
-        else:
-            # if it doesn't, create a new PostCode object with the provided postcode value,
-            # assign its id to the post_code_id field of the existing Address object,
-            # and add the new PostCode object to the database
-            post_code = PostCode(postcode=post_code_value)
-            db.session.add(post_code)
-            db.session.flush()  # this will generate the id for the new PostCode object
-            facility.address.post_code_id = post_code.id
+    # # update address post code
+    # if 'post_code' in request.json['address']:
+    #     post_code_value = request.json['address']['post_code']['postcode']
+    #     post_code = PostCode.query.filter_by(postcode=post_code_value).first()
+    #     if post_code:
+    #         # if it does, assign its id to the post_code_id field of the existing Address object
+    #         facility.address.post_code_id = post_code.id
+    #     else:
+    #         # if it doesn't, create a new PostCode object with the provided postcode value,
+    #         # assign its id to the post_code_id field of the existing Address object,
+    #         # and add the new PostCode object to the database
+    #         post_code = PostCode(postcode=post_code_value)
+    #         db.session.add(post_code)
+    #         db.session.flush()  # this will generate the id for the new PostCode object
+    #         facility.address.post_code_id = post_code.id
 
-    # retrieve a list of all facility_types and their IDs
-    facility_types = FacilityType.query.all()
+    # # retrieve a list of all facility_types and their IDs
+    # facility_types = FacilityType.query.all()
+    # valid_facility_types = [facility_type.id for facility_type in facility_types]
 
-    # update facility type to facility object
-    facility_type_id = request.json.get('facility_type_id')
-    if facility_type_id:
-        # validate facility type ID against prepopulated list
-        valid_facility_types = [f.id for f in facility_types]
-    if facility_type_id not in valid_facility_types:
-        return jsonify({'error': 'Invalid facility type ID'}), 400
-    facility.facility_type_id = facility_type_id
+    # # update facility type to facility object
+    # facility_type_id = request.json.get('facility_type_id')
+    # if facility_type_id is not None:
+    #     # validate facility type ID against prepopulated list
+    #     if facility_type_id not in valid_facility_types:
+    #         return jsonify({'error': 'Invalid facility type ID'}), 400
+    #     facility.facility_type_id = facility_type_id
 
-    # update amenities
-    if 'amenities' in request.json:
-        amenities, errors = facilityamenities_schema.load(request.json['amenities'])
-        if errors:
-            return jsonify(errors), 422
-        facility.amenities = amenities
+    # # update amenities
+    # if 'amenities' in request.json:
+    #     amenities, errors = facilityamenities_schema.load(request.json['amenities'])
+    #     if errors:
+    #         return jsonify(errors), 422
+    #     facility.amenities = amenities
 
-    # update promotions
-    if 'promotions' in request.json:
-        promotions, errors = promotions_schema.load(request.json['promotions'])
-        if errors:
-            return jsonify(errors), 422
-        facility.promotions = promotions
+    # # update promotions
+    # if 'promotions' in request.json:
+    #     promotions, errors = promotions_schema.load(request.json['promotions'])
+    #     if errors:
+    #         return jsonify(errors), 422
+    #     facility.promotions = promotions
 
     db.session.commit()
     result = facility_schema.dump(facility)

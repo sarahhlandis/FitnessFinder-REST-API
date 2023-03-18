@@ -41,7 +41,7 @@ class FacilitySchema(ma.Schema):
         
 
     @validates_schema
-    def validate_opening_closing_times(self, data):
+    def validate_opening_closing_times(self, data, partial=False):
         opening_time = data.get('opening_time')
         closing_time = data.get('closing_time')
 

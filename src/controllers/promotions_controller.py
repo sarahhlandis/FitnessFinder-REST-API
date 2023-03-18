@@ -1,5 +1,6 @@
 from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from marshmallow import ValidationError, EXCLUDE
 from app import db
 from utilities import *
 from models.facilities import Facility
@@ -9,7 +10,7 @@ from schemas.promotions_schema import promotion_schema, promotions_schema
 
 promotions = Blueprint('promotions', __name__, url_prefix='/promotions')
 
-
+# 1
 # create a new promotion
 @promotions.route('/<int:facility_id>/secure', methods=['POST'])
 @jwt_required()
@@ -22,7 +23,14 @@ def create_promotion(facility_id):
         return access_check
 
     # Deserialize the request data using PromotionSchema
+    # promotion_fields = promotion_schema.load(request.json)
     promotion_fields = promotion_schema.load(request.json)
+
+    try:
+        # Validate the dates using the `validate_dates` method in the schema
+        promotion_schema.validate(promotion_fields)
+    except ValidationError as e:
+        return jsonify(e.messages), 400
 
     # Set the facility_id to the provided facility_id
     promotion_fields["facility_id"] = facility_id
@@ -43,7 +51,7 @@ def create_promotion(facility_id):
 
 
 
-
+# 2
 # update a promotion for a specific facility of a logged-in owner
 @promotions.route('/<int:facility_id>/<int:promotion_id>/secure', methods=['PUT'])
 @jwt_required()
@@ -74,19 +82,20 @@ def update_facility_promotion(facility_id, promotion_id):
 
 
 
-
+# 3
 # delete a single promotion for a selected facility by a logged-in owner
 @promotions.route('/<int:promotion_id>/secure', methods=['DELETE'])
 @jwt_required()
 def delete_promotion(promotion_id):
     owner_id = get_jwt_identity()
 
+    promotion = Promotion.query.get(promotion_id)
+    
     # verify access
     access_check = verify_owner_access(promotion.facility_id, owner_id)
     if access_check:
         return access_check
 
-    promotion = Promotion.query.get(promotion_id)
 
     db.session.delete(promotion)
     db.session.commit()

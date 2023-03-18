@@ -114,35 +114,42 @@ registered blueprints:
 
 ```auth = Blueprint('auth', __name__, url_prefix="/login")```
 >
-- POST ```/auth/login/secure```
+- POST ```/login/secure```
     - *Functionality*: authenticate an existing owner 
     - *Route*: ```@auth.route("/login/secure", methods=["POST"])```
-    - *JSON Request Parameters*:
-    - *Expected Response*:
+    - *JSON Request Parameters*: email, password
+    - *Expected Response*: 
+    ![loginroute](/docs/authroute.png)
 >
 - POST ```/register/secure```
     - *Functionality*: register (create) a new owner
     - *Route*: ```@owners.route('/register/secure', methods=['POST'])```
-    - *JSON Request Parameters*:
+    - *JSON Request Parameters*: {name, email, mobile, password}
     - *Expected Response*:
+    ![owner_detailsroute](/docs/ownerroute2.png)
+    ![owner_detailsroute](/docs/ownerroute2a.png)
 >
 - GET ```/<int:owner_id>/secure```
     - *Functionality*: retrieve details of a logged-in owner
     - *Route*: ```@owners.route('/<int:owner_id>/secure', methods=['GET'])```
-    - *JSON Request Parameters*:
+    - *JSON Request Parameters*: 
     - *Expected Response*:
+    ![owner_detailsroute](/docs/ownerroute3.png)
 >
 - PUT ```/<int:owner_id>/secure```
     - *Functionality*: update details of a logged-in owner
     - *Route*: ```@owners.route('/<int:owner_id>/secure', methods=['PUT'])```
-    - *JSON Request Parameters*:
-    - *Expected Response*:
+    - *JSON Request Parameters*: 
+    - *Expected Response*: 
+    ![owner_updateroute](/docs/ownerroute4.png)
+    ![owner_updateroute](/docs/ownerroute4a.png)
 >
 - DELETE ```/account/secure```
     - *Functionality*: delete account of logged-in owner
     - *Route*: ```@owners.route('/account/secure', methods=['DELETE'])```
     - *JSON Request Parameters*: 
     - *Expected Response*:
+    ![owner_deleteroute](/docs/ownerroute5.png)
 >
 ** In regards to the deletion of an owner account, this will also delete all associated facilities, as the API does not allow for unowned facilities (without attribution to a specific owner).
 
@@ -160,12 +167,15 @@ registered blueprint:
     - *Route*: ```@facilities.route('/secure', methods=["GET"])```
     - *JSON Request Parameters*: 
     - *Expected Response*:
+    ![allfacility_route](/docs/facilitiesroute1.png)
+    ![allfacility_route](/docs/facilitiesroute1a.png)
 >
 - GET ```/<int:facility_id>/secure```
     - *Functionality*: Retrieve a specific facility of a logged-in owner
     - *Route*: ```@facilities.route('/<int:facility_id>/secure', methods=['GET'])```
     - *JSON Request Parameters*: 
     - *Expected Response*:
+    ![specificfacility_route](/docs/facilitiesroute2.png)
 >
 - PUT ```/<int:facility_id>/secure```
     - *Functionality*: Update a specific facility of a logged-in owner
@@ -179,21 +189,17 @@ registered blueprint:
     - *JSON Request Parameters*: 
     - *Expected Response*:
 >
-- GET ```/facility_types```
-    - *Functionality*: Retrieve a list of all facility types and their id assignments (facility_type_id is required as a ```fkey``` in the facilities entity, so must be included at time of facility creation)
-    - *Route*: ```@facilities.route('/facility_types', methods=['GET'])```
-    - *JSON Request Parameters*: 
-    - *Expected Response*:
 
 ### Amenities endpoints - 
 registered blueprint: 
-    ```facility_amenities = Blueprint('facility_amenities', __name__, url_prefix='/facilities_amenities')```
+    ```facility_amenities = Blueprint('facility_amenities', __name__, url_prefix='/facility_amenities')```
 >
 - GET ```/<int:facility_id>/amenities/secure```
     - *Functionality*: Retrieve all amenities for a specified facility by a logged-in owner
     - *Route*: ```@facility_amenities.route('/<int:facility_id>/amenities/secure', methods=['GET'])```
     - *JSON Request Parameters*: 
     - *Expected Response*:
+    ![amensretrieve](/docs/amensroute1.png)
 >
 - PUT ```/<int:facility_id>/amenities/secure```
     - *Functionality*: Update only amenities respective to owned facility for logged-in owner
@@ -230,6 +236,7 @@ blueprint: ```promotions = Blueprint('promotions', __name__, url_prefix='/promot
     - *Route*: ```@promotions.route('/<int:promotion_id>/secure', methods=['DELETE'])```
     - *JSON Request Parameters*: 
     - *Expected Response*:
+    ![promosdelete](/docs/promosroute3.png)
 >
 ** I chose not to create a specific endpoint to retrieve just the promotion of a specific facility as this capability is covered in the retrieval of an entire facility's details.
 
@@ -242,16 +249,19 @@ registered blueprint:
     - *Route*: ```@addresses.route('/<int:facility_id>/secure', methods=['GET'])```
     - *JSON Request Parameters*: 
     - *Expected Response*:
+    ![address_detailsroute](/docs/addressroute2.png)
 >
 - PUT ```/<int:facility_id>/secure```
     - *Functionality*: Update an address for a singular facility by a logged-in owner
     - *Route*: ```@addresses.route('/<int:facility_id>/secure', methods=['PUT'])```
     - *JSON Request Parameters*: 
     - *Expected Response*:
+    ![address_updateroute](/docs/addressroute1.png)
 >
 ** Specific to addresses, there is no functionality to create a new address since an address must be registered with a facility at the time of facility creation (i.e. an address cannot be created for a facility retrospectively). Additionally, there is no functionality to delete an address as an address is required for every facility and a deletion of an address would compromise the data's integrity.
 >
 I also wanted any untracked user to be able to retrieve data from the API so I created the below public endpoints.
+>
 > ### Public endpoints: 
 registered blueprint:
     ```public = Blueprint('public', __name__, url_prefix='/public')```
@@ -315,7 +325,21 @@ registered blueprint:
     - *Route*: ```@public.route('/facilities/postcode/<string:post_code>/promotions', methods=['GET'])```
     - *JSON Request Parameters*: None
     - *Expected Response*:
-
+>
+- GET ```/facility_types```
+    - *Functionality*: Retrieve a list of all facility types and their id assignments (facility_type_id is required as a ```fkey``` in the facilities entity, so must be included at time of facility creation)
+    - *Route*: ```@facilities.route('/facility_types', methods=['GET'])```
+    - *JSON Request Parameters*: 
+    - *Expected Response*:
+    ![facility_types_all](/docs/facility_typesroute1.png)
+>
+- GET ```/all_amenities```
+    - *Functionality*: Remove (delete) selected amenities from a specific facility by a logged-in owner
+    - *Route*: ```@amenities.route('/all_amenities', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![amens_route4](/docs/amensroute4.png)
+>
 ## 6. Entity Relationship Diagram:
 ![erd](/docs/final_erd.png)
 
@@ -323,7 +347,72 @@ registered blueprint:
 
 
 ## 8. Models:
+Models are used as a way for the database to understand how to build itself. It's important that programmers use models according to how they want all their entities to relate and interact with each other. Foreign keys are used to establish relations between two tables in a relational database - the foreign key constraint ensures that the values in the foreign key column(s) of a table always match the values in the corresponding primary key or unique key column(s) of the referenced table. Foreign keys help maintain data integrity and consistency.
 
+In this api, I have a model for all of my database tables (except the join table between facilities and amenities):
+- addresses model
+    - The addresses model was required to relate to the ```facilities``` and the ``post_codes`` model. However, in order to achieve this, it was only necessary to associate the ```post_codes``` directly to the addresses via foreign key (as addresses is related to facilities, via its own fkey)
+    >
+    - To define the foreign key in the addresses table to link ```post_codes```, this piece of code is used. 
+        >
+        ```post_code_id = db.Column(db.Integer, db.ForeignKey("post_codes.id"), nullable=False)```
+        >
+        This lets the ```addresses``` model know that there needs to be a column (id) in the addresses table that is populated from the ```post_codes``` table. The column has the constraint ```nullable=False``` meaning it cannot be empty.
+        >
+    - To achieve any sort of querying between the two tables, a relationship needs to be defined:
+        >
+        ```post_code = db.relationship('PostCode', backref='post_code_addresses')```
+        >
+        This piece of code creates the one-to-many relationship between post codes and addresses. A ```PostCode``` can have multiple associated ```Facility``` addresses, but each ```Facility``` address can only belong to one ```PostCode```. 
+        >
+        The backref to ```post_code_addresses``` provides a way to access all ```Facility``` addresses that are associated with a particular ```PostCode```.
+>
+- amenities model
+    - The ```amenities``` model does not have any direct relations to any other tables.
+- facilities model
+    - The ```facilities``` model is the main table which houses the information of the other tables. It has three foreign keys:
+    >
+    ```python
+    facility_type = db.Column(db.Integer, db.ForeignKey("facility_types.id"), nullable=False)
+    ```
+    ```python
+    owner_id = db.Column(db.Integer, db.ForeignKey("owners.id"), nullable=False)
+    ```
+    ```python
+    address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
+    ```
+    These key definitions establish a link between the ```facilities``` table and the ```facility_types```, ```owners```, and ```addresses``` table via their unique identifier. 
+    >
+    Just as in the ```addresses``` table, the foreign key relationships defined above specify the constraints and point to where exactly the foreign key is being pulled from. All three definitions are pulling the unique id from their respective table and populating as a foreign key in the ```facilities``` table.
+    >
+    - The facility model also needs to signify to the database what sort of relationship a ```Facility``` object has with the other objects (```Promotion```,```Address```, ```Owner```, ```Amenity```).
+    >
+
+    ```python
+    # Add the relationships directions to other models
+    promotions = db.relationship('Promotion', backref='facility_promotions', lazy=True, cascade="all, delete-orphan")
+    ```
+    This line sets up a one-to-many relationship between the ```Facility``` model and the ```Promotion``` model, using the "promotions" attribute in the ```Facility``` model to access all associated ```Promotion``` objects. It backreferences the "facility_promotions" attribute in the ```Promotion``` model to access the Facility object that the Promotion belongs to.
+    >
+    ```python
+    address = db.relationship('Address', backref='facility')
+    ```
+    The above line sets up a one-to-one relationship between the ```Facility``` model and the ```Address``` model, using the "address" attribute in the ```Facility``` model to access the associated ```Address``` object, and the "facility" attribute in the Address model to access the Facility object that the Address belongs to.
+    >
+
+    ```python
+    owner = db.relationship('Owner', backref="owner_facilities", cascade="all, delete-orphan", single_parent=True)
+    ```
+    This above line defines the one-to-many relationship between the ```Owner``` model and the ```Facility``` model.
+
+    ```python
+    amenities = db.relationship('Amenity', secondary=facility_amenities, lazy='subquery', backref=db.backref('facilities', lazy='dynamic'))
+    ```
+
+- facility_types model
+- owners model
+- post_codes model
+- promotions model
 
 
 ## 9. Database Relations:
@@ -373,7 +462,7 @@ To better assist me in my project planning, I chose to use **Trello** to manage 
 I chose to lay out my tasks with *preliminary* referring to environment and app structure setup, and *tasks* referring to coding actions. I labelled them with colors to signify the difficulty/time I estimated it would take, with green being quick and relatively easy, orange taking incrementally more time and requiring a little more thinking, and lastly red to symbolize tasks that required some hours. I then accordingly assigned due dates for all of them to keep on track. 
 
 ![cli_checklist](/docs/trello_cli.png)
-![controller_checklist](/docs/trello_controller.png)
+![controller_checklist](/docs/trello_controllers.png)
 ![models_checklist](/docs/trello_models.png)
 
 

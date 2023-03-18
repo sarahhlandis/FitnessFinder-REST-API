@@ -147,10 +147,10 @@ def seed_db():
         )
         db.session.add(post_code1)
 
-        post_code2=PostCode(
-            post_code="2000"
-        )
-        db.session.add(post_code2)
+        # post_code2=PostCode(
+        #     post_code="2000"
+        # )
+        # db.session.add(post_code2)
 
         post_code3=PostCode(
             post_code="2481"
@@ -192,7 +192,7 @@ def seed_db():
             street="Banksia Drive",
             suburb="Sydney",
             state="NSW",
-            post_code_id=post_code2.id
+            post_code_id=post_code1.id
         )
         db.session.add(address2)
 
@@ -231,6 +231,15 @@ def seed_db():
             post_code_id=post_code6.id
         )
         db.session.add(address6)
+
+        address7 = Address(
+            street_num=4572,
+            street="Magnolia Street",
+            suburb="Sydney",
+            state="NSW",
+            post_code_id=post_code1.id
+        )
+        db.session.add(address7)
     
         # commit all address entries to database
         db.session.commit()
@@ -309,6 +318,19 @@ def seed_db():
             owner_id=owner6.id
         )
         db.session.add(facility6)
+
+        facility7 = Facility(
+            business_name="Australian School of Dance",
+            independent=True,
+            phone_num="0234567897",
+            opening_time="9:00", 
+            closing_time="19:00",
+            facility_type=5,
+            address_id=address7.id,
+            owner_id=owner4.id
+        )
+        db.session.add(facility7)
+
 
         # commit all facility entries to database
         db.session.commit()
@@ -401,7 +423,7 @@ def seed_db():
         # associate objects with each other
         facility2.owner = owner2
         facility2.address = address2
-        facility2.post_code = post_code2
+        facility2.post_code = post_code1
         facility2.amenities.append(amenity3)
         facility2.amenities.append(amenity4)
         facility2.amenities.append(amenity5)
@@ -430,11 +452,10 @@ def seed_db():
         facility5.post_code = post_code5
 
         # associate objects with each other
-        facility6.owner = owner6
-        facility6.address = address6
-        facility6.post_code = post_code6
-        facility6.amenities.append(amenity13)
-        facility6.amenities.append(amenity14)
+        facility7.owner = owner4
+        facility7.address = address7
+        facility7.post_code = post_code1
+    
 
         db.session.commit()
         print("Database seeded!")

@@ -52,6 +52,7 @@ def get_facilities_by_type(facility_type):
 
 
 
+
 # THIS RETURNS ANY FACILITIES THAT HAVE ATLEAST 1 OF SPECIFIED AMENS. 
 # CHECK FUNCTIONALITY AND/OR
 # 4

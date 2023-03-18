@@ -8,6 +8,7 @@ facilities = Blueprint('facilities', __name__, url_prefix="/facilities")
 # there is no functionality to delete a facility_type from a facility as it is required
 # there is only functionality to update the facility type (in the facilities controller)
 
+# 1
 # retrieve a list of all facility types and their id assignments
 @facilities.route('/facility_types', methods=['GET'])
 def get_facility_types():
