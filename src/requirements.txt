@@ -21,6 +21,7 @@ platformdirs==3.1.0
 psycopg2==2.9.5
 PyJWT==2.6.0
 pylint==2.16.3
+python-dotenv==1.0.0
 pytz==2022.7.1
 six==1.16.0
 SQLAlchemy==2.0.4

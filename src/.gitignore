@@ -1,3 +1,2 @@
-src/.venv
-src/old_app.py
+.venv/
 __pycache__
