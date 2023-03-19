@@ -6,11 +6,301 @@
 
 ### [Project Management](https://trello.com/b/L4tvjr7Q/t1a3-terminal-application)
 
+## Help Documentation:
+Please ensure your local machine is fit with both Postgres and psycopg prior to engaging the following configuration steps.
+
+1. Database Configuration
+    - Check Postgres is running on its default port, 5432. If it is running on a different port, please modify the below statement to located in the ```.env``` file to suit your requirements (the numbers following "localhost:").
+        >
+        ```DATABASE_URL='postgresql+psycopg2://admin:adm1n@localhost:5432/fitnessfinder_db'```
+    >
+    - Run ```psql``` in your command line, followed by ```CREATE DATABASE fitnessfinder_db;``` to create the relational database.
+    >
+2. Database User and Privileges
+    - Run ```CREATE USER admin WITH PASSWORD 'adm1n';``` to create the user to access the database.
+        >
+        ** If you wish to change the user name or the database name, modify the *DATABASE_URL* statement in the ```.env``` file accordingly. Change this part ```admin:adm1n``` according to your desired user:password and this part ```fitnessfinder_db``` to your desired database.
+        >
+    - Run ```GRANT ALL PRIVILEGES ON DATABASE fitnessfinder_db TO admin;``` (alter if you've modified from the previous steps).
+>
+3. Setting up the Stack Environment
+    - Using your command line interface, move into your local copy of the ```SarahLandis_T2A2``` directory.
+    - Move into the ```src``` folder.
+    - Run ```python3 -m .venv venv``` on your command line to create a virtual environment for the application.
+    - Run ```source .venv/bin/activate``` on your command line to activate the virtual environment.
+>
+4. Install Application Dependencies
+    - Run ```pip install -r requirements.txt``` from your command line.
+>
+5. Database Seeding
+    - Run ```flask db create``` on your command line to create the tables of the relational database.
+    - Run ```flask db init``` on your command line to populate the tables with designated default values.
+    - Run ```flask db seed``` on your command line to seed the tables in the relational database.
+    - If you need to, run ```flask db drop``` on your command line to drop all of the tables in the relational database.
+>
+6. Server Informatiom
+    - This flask application is set up to run on the default local host server port (5000). If your local host runs on another port, please change the following in the ```.flaskenv``` file:
+    ```FLASK_RUN_PORT=5000```
+>
+7. This application's main file is called ```app.py``` and is set up accordingly to run with the command ```flask run``` from the command line. 
+    >
+    ** To better assist you in navigating the api, please see the below endpoints.
+
+## API Endpoints:
+> 
+### Secure endpoints: 
+Regarding this API's endpoints, some require verification and related authentication as its important to grant privileges to only those who require it, in this case - owners.
+>
+The endpoints with *authentication (JWT) and verification required* are denoted in the routes by a ```/secure``` tag attached to the endpoint url. The public routes accessible to any user (untracked), do not have this ```/secure``` tag. This is in part to deter accidental routing to this part of the API by someone unintended, as well as to signify to those who are at that endpoint, that it is a secure route.
+>
+Attached to each URL are payload requests in which you can view sample data -
+### Owner endpoints -
+registered blueprints: 
+```owners = Blueprint('owners', __name__, url_prefix='/owners')```
+
+```auth = Blueprint('auth', __name__, url_prefix="/login")```
+>
+- POST ```/login/secure```
+    - *Functionality*: authenticate an existing owner 
+    - *Route*: ```@auth.route("/login/secure", methods=["POST"])```
+    - *JSON Request Parameters*: email, password
+    - *Expected Response*: 
+    ![loginroute](/docs/authroute.png)
+>
+- POST ```/register/secure```
+    - *Functionality*: register (create) a new owner
+    - *Route*: ```@owners.route('/register/secure', methods=['POST'])```
+    - *JSON Request Parameters*: {name, email, mobile, password}
+    - *Expected Response*:
+    ![owner_detailsroute](/docs/ownerroute2.png)
+    ![owner_detailsroute](/docs/ownerroute2a.png)
+>
+- GET ```/<int:owner_id>/secure```
+    - *Functionality*: retrieve details of a logged-in owner
+    - *Route*: ```@owners.route('/<int:owner_id>/secure', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![owner_detailsroute](/docs/ownerroute3.png)
+>
+- PUT ```/<int:owner_id>/secure```
+    - *Functionality*: update details of a logged-in owner
+    - *Route*: ```@owners.route('/<int:owner_id>/secure', methods=['PUT'])```
+    - *JSON Request Parameters*: Any owner_fields owner wishes to change
+    - *Expected Response*: 
+    ![owner_updateroute](/docs/ownerroute4.png)
+    ![owner_updateroute](/docs/ownerroute4a.png)
+>
+- DELETE ```/account/secure```
+    - *Functionality*: delete account of logged-in owner
+    - *Route*: ```@owners.route('/account/secure', methods=['DELETE'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![owner_deleteroute](/docs/ownerroute5.png)
+    >
+    ** In regards to the deletion of an owner account, this will also delete all associated facilities, as the API does not allow for unowned facilities (without attribution to a specific owner).
+
+### Facility endpoints - 
+registered blueprint: 
+    ```facilities = Blueprint('facilities', __name__, url_prefix="/facilities")```
+- POST ```/secure```
+    - *Functionality*: Create a new facility for logged-in owner (with or without existing owned facility)
+    - *Route*: ```@facilities.route('/secure', methods=['POST'])```
+    - *JSON Request Parameters*: 
+    - *Expected Response*:
+>
+- GET ```/secure```
+    - *Functionality*: Retrieve a list of all facilities owned by a logged-in owner         
+    - *Route*: ```@facilities.route('/secure', methods=["GET"])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![allfacility_route](/docs/facilitiesroute1.png)
+    ![allfacility_route](/docs/facilitiesroute1a.png)
+>
+- GET ```/<int:facility_id>/secure```
+    - *Functionality*: Retrieve a specific facility of a logged-in owner
+    - *Route*: ```@facilities.route('/<int:facility_id>/secure', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![specificfacility_route](/docs/facilitiesroute2.png)
+    ![specificfacility_route](/docs/facilitiesroute2a.png)
+>
+- PUT ```/<int:facility_id>/secure```
+    - *Functionality*: Update a specific facility of a logged-in owner
+    - *Route*: ```@facilities.route('/<int:facility_id>/secure', methods=['PUT'])```
+    - *JSON Request Parameters*: any facility_fields the owner wishes to update
+    - *Expected Response*:
+    ![updatefacility_route](/docs/facilitiesroute5.png)
+    ![updatefacility_route](/docs/facilitiesroute5a.png)
+>
+- DELETE ```/<int:facility_id>/secure```
+    - *Functionality*: Deletion of specific facility unless owner only has 1 facility, in which case, must delete account (and facility)
+    - *Route*: ```@facilities.route('/<int:facility_id>/secure', methods=['DELETE'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![deletefacility_route](/docs/facilitiesroute4.png)
+    ![deletefacility_route](/docs/facilitiesroute4a.png)
+>
+
+### Amenities endpoints - 
+registered blueprint: 
+    ```facility_amens = Blueprint('facility_amenities', __name__, url_prefix='/facility_amens')```
+>
+- GET ```/<int:facility_id>/amenities/secure```
+    - *Functionality*: Retrieve all amenities for a specified facility by a logged-in owner
+    - *Route*: ```@facility_amenities.route('/<int:facility_id>/amenities/secure', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![amensretrieve](/docs/amensroute1.png)
+>
+- PUT / DELETE ```/<int:facility_id>/amenities/secure```
+    - *Functionality*: Update only amenities respective to owned facility for logged-in owner
+    - *Route*: ```@facility_amenities.route('/<int:facility_id>/amenities/secure', methods=['PUT'])```
+    - *JSON Request Parameters*: specific amenity_names owner wishes to add/remove
+    - *Expected Response*: 
+    ![amensupdate](/docs/amensroute2.png)
+    ![amensupdate](/docs/amensroute2a.png)
+    >
+    ** An owner cannot create new amenities therefore there is no functionality for a route that allows this. The amenities are prepopulated at time of database initialization - once they are created, they are not created again. 
+    >
+    I chose to include amenities in this way so that owners could not say "swim_spa" as an amenity, rather either "pool" or "spa". If every owner could create amenities with no naming convention, there would more than likely be many of the same amenities, however named differently. This would render querying by amenities useless, disorganized, and redundant.
+
+### Promotions endpoints - 
+blueprint: ```promotions = Blueprint('promotions', __name__, url_prefix='/promotions')```
+- POST ```/<int:facility_id>/secure```
+    - *Functionality*: Create a new promotion
+    - *Route*: ```@promotions.route('/<int:facility_id>/secure', methods=['POST'])```
+    - *JSON Request Parameters*: name, start_date, end_date, discount_percent
+    - *Expected Response*:
+    ![createpromos_route1](/docs/promosroute1.png)
+    ![createpromos_route1](/docs/promosroute1a.png)
+>
+- PUT ```/<int:facility_id>/<int:promotion_id>/secure```
+    - *Functionality*: Update a promotion for a specific facility of a logged-in owner
+    - *Route*: ```@promotions.route('/<int:facility_id>/<int:promotion_id>/secure', methods=['PUT'])```
+    - *JSON Request Parameters*: any promotions_fields owner wishes to change
+    - *Expected Response*:
+    ![updatepromos_route2](/docs/promosroute2.png)
+    ![updatepromos_route2](/docs/promosroute2a.png)
+>
+- DELETE ```/<int:promotion_id>/secure```
+    - *Functionality*: Delete a single promotion for a selected facility by a logged-in owner
+    - *Route*: ```@promotions.route('/<int:promotion_id>/secure', methods=['DELETE'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![promosdelete](/docs/promosroute3.png)
+    >
+    ** I chose not to create a specific endpoint to retrieve just the promotion of a specific facility as this capability is covered in the retrieval of an entire facility's details.
+
+### Addresses endpoints - 
+registered blueprint: 
+    ```addresses = Blueprint('addresses', __name__, url_prefix='/addresses')```
+>
+- GET ```/<int:facility_id>/secure```
+    - *Functionality*: Retrieve a single address for a specified facility by a logged-in owner
+    - *Route*: ```@addresses.route('/<int:facility_id>/secure', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![address_detailsroute](/docs/addressroute2.png)
+>
+- PUT ```/<int:facility_id>/secure```
+    - *Functionality*: Update an address for a singular facility by a logged-in owner
+    - *Route*: ```@addresses.route('/<int:facility_id>/secure', methods=['PUT'])```
+    - *JSON Request Parameters*: any address_fields owner wishes to update
+    - *Expected Response*:
+    ![address_updateroute](/docs/addressroute1.png)
+    >
+    ** Specific to addresses, there is no functionality to create a new address since an address must be registered with a facility at the time of facility creation (i.e. an address cannot be created for a facility retrospectively). Additionally, there is no functionality to delete an address as an address is required for every facility and a deletion of an address would compromise the data's integrity.
+>
+I also wanted any untracked user to be able to retrieve data from the API so I created the below public endpoints.
+>
+### Public endpoints: 
+registered blueprint:
+    ```public = Blueprint('public', __name__, url_prefix='/public')```
+>
+- GET ```/facilities/postcode/<string:post_code>```
+    - *Functionality*: Query facilities based on post_code
+    - *Route*: ```@public.route('/facilities/postcode/<string:post_code>', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![publicroute_1](/docs/pubroute1.png)
+>
+- GET ```/facilities/promotions/current```
+    - *Functionality*: Query facilities based on promotion end date 
+    - *Route*: ```@public.route('/facilities/promotions/current', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*: 
+    ![publicroute_2](/docs/pubroute2.png)
+    ![publicroute_2](/docs/pubroute2a.png)
+>
+- GET ```/facilities/type/<string:facility_type>```
+    - *Functionality*: Query facilities based on facility_type
+    - *Route*: ```@public.route('/facilities/type/<string:facility_type>', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*: 
+    ![publicroute_3](/docs/pubroute3.png)
+>
+- GET ```/amenities/<string:amenity_ids>```
+    - *Functionality*: Query facilities based on an amenity list
+    - *Route*: ```@public.route('/amenities/<string:amenity_ids>', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*: 
+    ![publicroute_4](/docs/pubroute4.png)
+    ![publicroute_4](/docs/pubroute4a.png)
+>
+- GET ```/facilities/hours/<string:opening_time>/<string:closing_time>```
+    - *Functionality*: Query all facilities that are open for certain hours
+    - *Route*: ```@public.route('/facilities/hours/<string:opening_time>/<string:closing_time>', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*: 
+    ![publicroute_5](/docs/pubroute5.png)
+    ![publicroute_5](/docs/pubroute5a.png)
+>
+- GET ```/facilities/<string:facility_type>/hours/<string:opening_time>/<string:closing_time>```
+    - *Functionality*: Query all facilities of a specific type that are also open for certain hours
+    - *Route*: ```@public.route('/facilities/<string:facility_type>/hours/<string:opening_time>/<string:closing_time>', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![publicroute_6](/docs/pubroute6.png)
+>
+- GET ```/facilities/postcode/<string:post_code>/amenities/<string:amenity_ids>```
+    - *Functionality*: Query all facilities in a specified post_code that have the specified amenities
+    returns all facilities within post_code and also have desired amenities
+    - *Route*: ```@public.route('/facilities/postcode/<string:post_code>/amenities/<string:amenity_ids>', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![publicroute_7](/docs/pubroute7.png)
+    ![publicroute_7](/docs/pubroute7a.png)
+>
+- GET ```/facilities/postcode/<string:post_code>/promotions```
+    - *Functionality*: Query all facilities that are running promotions in a specified post_code
+    returns all facilities within post_code that are also running promotions
+    - *Route*: ```@public.route('/facilities/postcode/<string:post_code>/promotions', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![publicroute_7](/docs/pubroute8.png)
+>
+- GET ```/facility_types```
+    - *Functionality*: Retrieve a list of all facility types and their id assignments (facility_type_id is required as a ```fkey``` in the facilities entity, so must be included at time of facility creation)
+    - *Route*: ```@facilities.route('/facility_types', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![facility_types_all](/docs/facility_typesroute1.png)
+>
+- GET ```/all_amenities```
+    - *Functionality*: Retrieve all amenities and their ids
+    - *Route*: ```@amenities.route('/all_amenities', methods=['GET'])```
+    - *JSON Request Parameters*: None
+    - *Expected Response*:
+    ![amens_route4](/docs/amensroute4.png)
+>
+
 ## 1. Purpose:
-The FitnessFinder API is an application that intends to mitigate and ease the process of finding a fitness center. Often, when searching for a new gym or studio, one must travel to the prospective facilities to check what amenities they have, hours, and just to gain general info. This application aims to make this process easier for people by having this info all in one place, thus making it easier to compare facilities and find one that better suits their needs.
+The FitnessFinder API is an application that intends to mitigate and ease the process of finding a new fitness center. Often, when searching for a new gym or studio, one must travel to the prospective facilities to check what amenities they have, call up to find out the hours, and just to gain general info. This application aims to make this process more streamlined for people by having this info all in one place, thus making it easier to compare facilities and find one that best suits their needs. 
+>
+The API also has the capability for owners to have their accounts in which they manage their facility information - this is a lot better than going thru the neverending chains of Google to get your information displayed. With the facility owner having more control over their own facility details, clients will have an easier time making accurate decisions.
 
 ## 2. Resolution:
-This problems needs to be solved because with the evergrowing population of fitness centers, gyms, pilates studios, etc. it can be overwhelming finding something that suits all your needs. This application congregates all the relevant data into one place making it much easier to do preliminary research when starting this process. Upgrades of this app may include a user portal in which users can review and rate facilities making it even easier to see which gyms may be suitable for the prospective gym-goer's needs. 
+This problem needs to be solved because with the evergrowing population of fitness centers, gyms, pilates studios, etc. it can be overwhelming finding something that suits all your needs. This application congregates all the relevant data into one place making it much easier to do preliminary research when taking the first step towards regaining physical fitness. Upgrades of this app may include a user portal in which users can review and rate facilities making it even easier to see which gyms may be suitable for the prospective gym-goer's needs. At this stage, the api only has capabilities to allow owners to login and manage their facility's details however this is ideal for a preliminary api as people will be able to use it freely without making yet another account for something they may only use once. 
 
 ## 3. Database System:
 I have chosen to use postgreSQL as my relational database management system.
@@ -101,262 +391,57 @@ When using an ORM, a developer can better and more adequately protect the querie
 >
 Overall using an ORM can seamlessly integrate the database with the application codebase allowing for easy changes to queries without having to have a vast knowledge of SQL. An ORM also allows for changing up the entire application without having to duplicate access code via a dynamic-link library. ORMs such as SQLAlchemy allow the developer to define production or development mode in which case there is a built-in debugger that is available for use upon correct configuration. All of these features make it easier for programmers to build out applications in a language they're familiar with, without getting to stuck on SQL queries themselves. Development can in turn focus more on business logic rather than SQL syntax further bolstering the application as functional in all ways.
 >
-## 5. API Endpoints:
-> 
-### Secure endpoints: 
-Regarding this API's endpoints, some require verification and related authentication as its important to grant privileges to only those who require it, in this case - owners.
->
-The endpoints with authentication (JWT) and verification required are specified in the routes with a ```/secure``` tag attached to the endpoint url. The public routes accessible to any user (untracked), do not have this ```/secure``` tag. This is in part to deter accidental routing to this part of the API by someone unintended, as well as to signify to those who are at that endpoint, that it is a secure route.
->
-### Owner endpoints -
-registered blueprints: 
-```owners = Blueprint('owners', __name__, url_prefix='/owners')```
 
-```auth = Blueprint('auth', __name__, url_prefix="/login")```
->
-- POST ```/login/secure```
-    - *Functionality*: authenticate an existing owner 
-    - *Route*: ```@auth.route("/login/secure", methods=["POST"])```
-    - *JSON Request Parameters*: email, password
-    - *Expected Response*: 
-    ![loginroute](/docs/authroute.png)
->
-- POST ```/register/secure```
-    - *Functionality*: register (create) a new owner
-    - *Route*: ```@owners.route('/register/secure', methods=['POST'])```
-    - *JSON Request Parameters*: {name, email, mobile, password}
-    - *Expected Response*:
-    ![owner_detailsroute](/docs/ownerroute2.png)
-    ![owner_detailsroute](/docs/ownerroute2a.png)
->
-- GET ```/<int:owner_id>/secure```
-    - *Functionality*: retrieve details of a logged-in owner
-    - *Route*: ```@owners.route('/<int:owner_id>/secure', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![owner_detailsroute](/docs/ownerroute3.png)
->
-- PUT ```/<int:owner_id>/secure```
-    - *Functionality*: update details of a logged-in owner
-    - *Route*: ```@owners.route('/<int:owner_id>/secure', methods=['PUT'])```
-    - *JSON Request Parameters*: Any owner_fields owner wishes to change
-    - *Expected Response*: 
-    ![owner_updateroute](/docs/ownerroute4.png)
-    ![owner_updateroute](/docs/ownerroute4a.png)
->
-- DELETE ```/account/secure```
-    - *Functionality*: delete account of logged-in owner
-    - *Route*: ```@owners.route('/account/secure', methods=['DELETE'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![owner_deleteroute](/docs/ownerroute5.png)
->
-** In regards to the deletion of an owner account, this will also delete all associated facilities, as the API does not allow for unowned facilities (without attribution to a specific owner).
-
-### Facility endpoints - 
-registered blueprint: 
-    ```facilities = Blueprint('facilities', __name__, url_prefix="/facilities")```
-- POST ```/secure```
-    - *Functionality*: Create a new facility for logged-in owner (with or without existing owned facility)
-    - *Route*: ```@facilities.route('/secure', methods=['POST'])```
-    - *JSON Request Parameters*: 
-    - *Expected Response*:
->
-- GET ```/secure```
-    - *Functionality*: Retrieve a list of all facilities owned by a logged-in owner         
-    - *Route*: ```@facilities.route('/secure', methods=["GET"])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![allfacility_route](/docs/facilitiesroute1.png)
-    ![allfacility_route](/docs/facilitiesroute1a.png)
->
-- GET ```/<int:facility_id>/secure```
-    - *Functionality*: Retrieve a specific facility of a logged-in owner
-    - *Route*: ```@facilities.route('/<int:facility_id>/secure', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![specificfacility_route](/docs/facilitiesroute2.png)
-    ![specificfacility_route](/docs/facilitiesroute2a.png)
->
-- PUT ```/<int:facility_id>/secure```
-    - *Functionality*: Update a specific facility of a logged-in owner
-    - *Route*: ```@facilities.route('/<int:facility_id>/secure', methods=['PUT'])```
-    - *JSON Request Parameters*: any facility_fields the owner wishes to update
-    - *Expected Response*:
-    ![updatefacility_route](/docs/facilitiesroute5.png)
-    ![updatefacility_route](/docs/facilitiesroute5a.png)
->
-- DELETE ```/<int:facility_id>/secure```
-    - *Functionality*: Deletion of specific facility unless owner only has 1 facility, in which case, must delete account (and facility)
-    - *Route*: ```@facilities.route('/<int:facility_id>/secure', methods=['DELETE'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![deletefacility_route](/docs/facilitiesroute4.png)
-    ![deletefacility_route](/docs/facilitiesroute4a.png)
->
-
-### Amenities endpoints - 
-registered blueprint: 
-    ```facility_amens = Blueprint('facility_amenities', __name__, url_prefix='/facility_amens')```
->
-- GET ```/<int:facility_id>/amenities/secure```
-    - *Functionality*: Retrieve all amenities for a specified facility by a logged-in owner
-    - *Route*: ```@facility_amenities.route('/<int:facility_id>/amenities/secure', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![amensretrieve](/docs/amensroute1.png)
->
-- PUT / DELETE ```/<int:facility_id>/amenities/secure```
-    - *Functionality*: Update only amenities respective to owned facility for logged-in owner
-    - *Route*: ```@facility_amenities.route('/<int:facility_id>/amenities/secure', methods=['PUT'])```
-    - *JSON Request Parameters*: specific amenity_names owner wishes to add/remove
-    - *Expected Response*: 
-    ![amensupdate](/docs/amensroute2.png)
-    ![amensupdate](/docs/amensroute2a.png)
->
-** An owner cannot create new amenities therefore there is no functionality for a route that allows this. The amenities are prepopulated at time of database initialization - once they are created, they are not created again. 
-    >
-    I chose to include amenities in this way so that owners could not say "swim_spa" as an amenity, rather either "pool" or "spa". If every owner could create amenities with no naming convention, there would more than likely be many of the same amenities, however named differently. This would render querying by amenities useless and disorganized.
-
-### Promotions endpoints - 
-blueprint: ```promotions = Blueprint('promotions', __name__, url_prefix='/promotions')```
-- POST ```/<int:facility_id>/secure```
-    - *Functionality*: Create a new promotion
-    - *Route*: ```@promotions.route('/<int:facility_id>/secure', methods=['POST'])```
-    - *JSON Request Parameters*: name, start_date, end_date, discount_percent
-    - *Expected Response*:
-    ![createpromos_route1](/docs/promosroute1.png)
-    ![createpromos_route1](/docs/promosroute1a.png)
->
-- PUT ```/<int:facility_id>/<int:promotion_id>/secure```
-    - *Functionality*: Update a promotion for a specific facility of a logged-in owner
-    - *Route*: ```@promotions.route('/<int:facility_id>/<int:promotion_id>/secure', methods=['PUT'])```
-    - *JSON Request Parameters*: any promotions_fields owner wishes to change
-    - *Expected Response*:
-    ![updatepromos_route2](/docs/promosroute2.png)
-    ![updatepromos_route2](/docs/promosroute2a.png)
->
-- DELETE ```/<int:promotion_id>/secure```
-    - *Functionality*: Delete a single promotion for a selected facility by a logged-in owner
-    - *Route*: ```@promotions.route('/<int:promotion_id>/secure', methods=['DELETE'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![promosdelete](/docs/promosroute3.png)
->
-** I chose not to create a specific endpoint to retrieve just the promotion of a specific facility as this capability is covered in the retrieval of an entire facility's details.
-
-### Addresses endpoints - 
-registered blueprint: 
-    ```addresses = Blueprint('addresses', __name__, url_prefix='/addresses')```
->
-- GET ```/<int:facility_id>/secure```
-    - *Functionality*: Retrieve a single address for a specified facility by a logged-in owner
-    - *Route*: ```@addresses.route('/<int:facility_id>/secure', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![address_detailsroute](/docs/addressroute2.png)
->
-- PUT ```/<int:facility_id>/secure```
-    - *Functionality*: Update an address for a singular facility by a logged-in owner
-    - *Route*: ```@addresses.route('/<int:facility_id>/secure', methods=['PUT'])```
-    - *JSON Request Parameters*: any address_fields owner wishes to update
-    - *Expected Response*:
-    ![address_updateroute](/docs/addressroute1.png)
->
-** Specific to addresses, there is no functionality to create a new address since an address must be registered with a facility at the time of facility creation (i.e. an address cannot be created for a facility retrospectively). Additionally, there is no functionality to delete an address as an address is required for every facility and a deletion of an address would compromise the data's integrity.
->
-I also wanted any untracked user to be able to retrieve data from the API so I created the below public endpoints.
->
-> ### Public endpoints: 
-registered blueprint:
-    ```public = Blueprint('public', __name__, url_prefix='/public')```
->
-- GET ```/facilities/postcode/<string:post_code>```
-    - *Functionality*: Query facilities based on post_code
-    - *Route*: ```@public.route('/facilities/postcode/<string:post_code>', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![publicroute_1](/docs/pubroute1.png)
->
-- GET ```/facilities/promotions/current```
-    - *Functionality*: Query facilities based on promotion end date 
-    - *Route*: ```@public.route('/facilities/promotions/current', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*: 
-    ![publicroute_2](/docs/pubroute2.png)
-    ![publicroute_2](/docs/pubroute2a.png)
->
-- GET ```/facilities/type/<string:facility_type>```
-    - *Functionality*: Query facilities based on facility_type
-    - *Route*: ```@public.route('/facilities/type/<string:facility_type>', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*: 
-    ![publicroute_3](/docs/pubroute3.png)
->
-- GET ```/amenities/<string:amenity_ids>```
-    - *Functionality*: Query facilities based on an amenity list
-    - *Route*: ```@public.route('/amenities/<string:amenity_ids>', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*: 
-    ![publicroute_4](/docs/pubroute4.png)
-    ![publicroute_4](/docs/pubroute4a.png)
->
-- GET ```/facilities/hours/<string:opening_time>/<string:closing_time>```
-    - *Functionality*: Query all facilities that are open for certain hours
-    - *Route*: ```@public.route('/facilities/hours/<string:opening_time>/<string:closing_time>', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*: 
-    ![publicroute_5](/docs/pubroute5.png)
-    ![publicroute_5](/docs/pubroute5a.png)
->
-- GET ```/facilities/<string:facility_type>/hours/<string:opening_time>/<string:closing_time>```
-    - *Functionality*: Query all facilities of a specific type that are also open for certain hours
-    - *Route*: ```@public.route('/facilities/<string:facility_type>/hours/<string:opening_time>/<string:closing_time>', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![publicroute_6](/docs/pubroute6.png)
->
-- GET ```/facilities/postcode/<string:post_code>/amenities/<string:amenity_ids>```
-    - *Functionality*: Query all facilities in a specified post_code that have the specified amenities
-    returns all facilities within post_code and also have desired amenities
-    - *Route*: ```@public.route('/facilities/postcode/<string:post_code>/amenities/<string:amenity_ids>', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![publicroute_7](/docs/pubroute7.png)
-    ![publicroute_7](/docs/pubroute7a.png)
->
-- GET ```/facilities/postcode/<string:post_code>/promotions```
-    - *Functionality*: Query all facilities that are running promotions in a specified post_code
-    returns all facilities within post_code that are also running promotions
-    - *Route*: ```@public.route('/facilities/postcode/<string:post_code>/promotions', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![publicroute_7](/docs/pubroute8.png)
->
-- GET ```/facility_types```
-    - *Functionality*: Retrieve a list of all facility types and their id assignments (facility_type_id is required as a ```fkey``` in the facilities entity, so must be included at time of facility creation)
-    - *Route*: ```@facilities.route('/facility_types', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![facility_types_all](/docs/facility_typesroute1.png)
->
-- GET ```/all_amenities```
-    - *Functionality*: Retrieve all amenities and their ids
-    - *Route*: ```@amenities.route('/all_amenities', methods=['GET'])```
-    - *JSON Request Parameters*: None
-    - *Expected Response*:
-    ![amens_route4](/docs/amensroute4.png)
->
 ## 6. Entity Relationship Diagram:
 ![erd](/docs/final_erd.png)
 
 ## 7. Third Party Services:
-
+- Flask: 
+    "Flask is a lightweight Python web framework that provides useful tools and features for creating web applications in the Python Language."[^9]
+>
+- SQLAlchemy: 
+    
+    "SQLAlchemy is an SQL toolkit that provides efficient and high-performing database access for relational databases...It gives you access to the database’s SQL functionalities. It also gives you an Object Relational Mapper (ORM), which allows you to make queries and handle data using simple Python objects and methods."[^9] 
+    > 
+    "...Instead of hiding away SQL and object relational details behind a wall of automation, all processes are fully exposed within a series of composable, transparent tools. The library takes on the job of automating redundant tasks while the developer remains in control of how the database is organized and how SQL is constructed."[^10]
+>
+- Flask-SQLAlchemy: 
+    "Flask-SQLAlchemy is a Flask extension that makes using SQLAlchemy with Flask easier, providing you tools and methods to interact with your database in your Flask applications through SQLAlchemy."[^9] Flask-SQLAlchemy is used in this application to effectively merge both flask and sqlalchemy - by importing this module into the application, flask is enabled to use the full range of functionality from SQLAlchemy and access the database using simplistic and familiar object-oriented code (python). It provides an interface for interacting with the database using SQLAlchemy, which is an Object Relational Mapper (ORM) for Python.
+>
+    Using Flask-SQLAlchemy, this api was able to define its database as Python classes, known as Models. The models are a representation of the tables in the database. SQLAlchemy allows for querying and CRUD functionality (create, read, update, delete) using methods such as ```db.session.add()```, ```db.session.commit()```, and ```db.session.query()```. Another thing the library is able to handle, is database migration meaning it allows for easy changes - once the schema is changed, the database evolves with it.
+>
+- Flask-Bcrypt: 
+    "Flask bcrypt is defined as a flask extension that enables users with utilities related to bcrypt hashing...The bcrypt is an adaptive function which can be deliberately made slower so that application is resistant to brute force attacks."[^11] 
+    >
+    This api uses Flask-Bcrypt as a package import in order to hash passwords securely and compare them with stored hashes. This can be seen in the ```/login``` endpoint where an owner must enter their password. The ```bcrypt.check_password_hash``` is a significant helper function in doing so, which is imported with the Flask-Bcrypt package.
+>
+- Flask-JWT-Extended: 
+    Flask-JWT-Extended is a Flask extension that provides JWT-based authentication for your Flask API. It allows you to create and verify JWT tokens, which can be used to protect your API endpoints and authenticate users.  This can be seen being used on all the ```/secure``` endpoints in which an owner must be authenticated prior to any information being released. 
+    >
+    Functions such as ```create_access_token``` are an integral part of authenticating owners - this generates a JSON Web Token (JWT) access token for a given identity (owner) and sets an expiration time for the token. The token can then be used in the payload request data to access certain information and routes, furthering adding a protective layer to the api.
+>
+- Flask-marshmallow: 
+    "Flask-Marshmallow is a thin integration layer for Flask (a Python web framework) and marshmallow (an object serialization/deserialization library) that adds additional features to marshmallow."[^12]
+    ![flask-marshmallow](/docs/flask-marshmallow.png)[^13]
+    >
+    For example, upon app configuration, this api involves the flask-marshmallow package in order to access the Schema class. This is especially important and useful in serializing and deserializing the data - ensuring that the data is in the correct format, that its not missing any required fields, etc. The Schema allows the programmer to define the structure of the data.
+>
+- Marshmallow-sqlalchemy:
+    Marshmallow-sqlalchemy is a package that provides integration between Marshmallow and SQLAlchemy, making it easy to serialize SQLAlchemy models to and from JSON format. This is especially used upon returning data from the database in a way that Flask can read.
+    >
+    This package also allows for easier handling of serialization and deserialization of the app's models. 
+    >
+    ** Note: To fully enable SQLALchemy integration, both Flask-SQLAlchemy and Marshmallow-sqlalchemy must be imported. Additionally, Flask-SQLAlchemy must be initialized before Flask-Marshmallow.
+>
+- Psycopg2: 
+    "Psycopg is the most popular PostgreSQL adapter used in  Python.  Its works on the principle of the whole implementation of Python DB API 2.0 along with the thread safety (the same connection is shared by multiple threads). It is designed to perform heavily multi-threaded applications that usually create and destroy lots of cursors and make a large number of simultaneous INSERTS or UPDATES."[^14]
+    >
+    This package allows an application to connect to a PostgreSQL database and perform SQL queries and commands, and retrieve results. 
 
 ## 8. Models:
 Models are used as a way for the database to understand how to build itself. It's important that programmers use models according to how they want all their entities to relate and interact with each other. Foreign keys are used to establish relations between two tables in a relational database - the foreign key constraint ensures that the values in the foreign key column(s) of a table always match the values in the corresponding primary key or unique key column(s) of the referenced table. Foreign keys help maintain data integrity and consistency.
 
-In this api, I have a model for all of my database tables (except the join table between facilities and amenities):
+In this api, I have a model for all of my database tables (except in the instance where I used a join table between facilities and amenities instead):
 - addresses model
     - The addresses model was required to relate to the ```facilities``` and the ``post_codes`` model. However, in order to achieve this, it was only necessary to associate the ```post_codes``` directly to the addresses via foreign key (as addresses is related to facilities, via its own fkey).
     >
@@ -388,9 +473,9 @@ In this api, I have a model for all of my database tables (except the join table
     ```python
     address_id = db.Column(db.Integer, db.ForeignKey("addresses.id"), nullable=False)
     ```
-    These key definitions establish a link between the ```facilities``` table and the ```facility_types```, ```owners```, and ```addresses``` table via their unique identifiers. 
+    - These key definitions establish a link between the ```facilities``` table and the ```facility_types```, ```owners```, and ```addresses``` table via their unique identifiers. 
     >
-    Just as in the ```addresses``` table, the foreign key relationships defined above specify the constraints and point to where exactly the foreign key is being pulled from. All three definitions are pulling the unique id from their respective table and populating as a foreign key in the ```facilities``` table. This is to establish a proper and recognized link between the tables for querying purposes in the database.
+    - Just as in the ```addresses``` table, the foreign key relationships defined above specify the constraints and point to where exactly the foreign key is being pulled from. All three definitions are pulling the unique id from their respective table and populating as a foreign key in the ```facilities``` table. This is to establish a proper and recognized link between the tables for querying purposes in the database.
     >
     - The facility model also needs to signify to the database what sort of relationship a ```Facility``` object has with the other objects (```Promotion```,```Address```, ```Owner```, ```Amenity```).
     >
@@ -398,67 +483,93 @@ In this api, I have a model for all of my database tables (except the join table
     # Add the relationships directions to other models
     promotions = db.relationship('Promotion', backref='facility_promotions', lazy=True, cascade="all, delete-orphan")
     ```
-    This line sets up a one-to-many relationship between the ```Facility``` model and the ```Promotion``` model, using the "promotions" attribute in the ```Facility``` model to access all associated ```Promotion``` objects. It backreferences the "facility_promotions" attribute in the ```Promotion``` model to access the Facility object that the Promotion belongs to.
+        This line sets up a one-to-many relationship between the ```Facility``` model and the ```Promotion``` model, using the "promotions" attribute in the ```Facility``` model to access all associated ```Promotion``` objects. It backreferences the "facility_promotions" attribute in the ```Promotion``` model to access the Facility object that the Promotion belongs to.
     >
     ```python
     address = db.relationship('Address', backref='facility')
     ```
-    The above line sets up a one-to-one relationship between the ```Facility``` model and the ```Address``` model, using the "address" attribute in the ```Facility``` model to access the associated ```Address``` object, and the "facility" attribute in the ```Address``` model to access the Facility object that the Address belongs to.
+    - The above line sets up a one-to-one relationship between the ```Facility``` model and the ```Address``` model, using the "address" attribute in the ```Facility``` model to access the associated ```Address``` object, and the "facility" attribute in the ```Address``` model to access the Facility object that the Address belongs to.
     >
 
     ```python
     owner = db.relationship('Owner', backref="owner_facilities", cascade="all, delete-orphan", single_parent=True)
     ```
-    This above line sets up the one-to-many relationship between the ```Owner``` model and the ```Facility``` model. The backreference parameter creates an ```owner_facilities``` attribute on the ```Owner``` model that allows us to access all facilities associated with a particular owner. Additionally, the cascade and single-parent parameter assist in the deletion order (cascade meaning when an owner is deleted, all its associated facilities will also be deleted) and general integrity maintenance (single-parent meaning a facility can only have one owner, ensuring that the db does not have multiple owners associated with the same facility).
+    - This above line sets up the one-to-many relationship between the ```Owner``` model and the ```Facility``` model. The backreference parameter creates an ```owner_facilities``` attribute on the ```Owner``` model that allows us to access all facilities associated with a particular owner. 
+        >
+        Additionally, the cascade and single-parent parameter assist in the deletion order (cascade meaning when an owner is deleted, all its associated facilities will also be deleted) and general integrity maintenance (single-parent meaning a facility can only have one owner, ensuring that the db does not have multiple owners associated with the same facility).
     >
     ```python
     amenities = db.relationship('Amenity', secondary=facility_amenities, lazy='subquery', backref=db.backref('facilities', lazy='dynamic'))
     ```
-    This line defines a many-to-many relationship between the ```Facility``` model and the ```Amenity``` model using the ```facility_amenities``` association table. It allows for access to all facilities associated with a particular amenity.
-
-    The backref denotes that the developer can access all amenities associated with a particular facility. the ```lazy='subquery'``` specifies that related objects should be loaded using a subquery statement, which can improve performance compared to the default lazy loading strategy. The second ```lazy='dynamic'``` specifies that the query should return a dynamic object instead of the default list object. This means that instead of returning a list of amenities, a query object is returned that can be further refined with filters, orderings, etc. 
+    - This line defines a many-to-many relationship between the ```Facility``` model and the ```Amenity``` model using the ```facility_amenities``` association table. It allows for access to all facilities associated with a particular amenity.
+        >
+        The backref denotes that the developer can access all amenities associated with a particular facility. the ```lazy='subquery'``` specifies that related objects should be loaded using a subquery statement, which can improve performance compared to the default lazy loading strategy. 
+        >
+        The second ```lazy='dynamic'``` specifies that the query should return a dynamic object instead of the default list object. This means that instead of returning a list of amenities, a query object is returned that can be further refined with filters, orderings, etc. 
 >
 - facility_types model
     - The facility_types model only needed to be linked to specific facilities. This line:  
     ```facilities = db.relationship('Facility', backref='facility_types', lazy=True)```
-    defines a one-one relationship between the ```FacilityType``` model and the ```Facility``` model. It creates a backref ```facility_types``` in the ```Facility``` model which allows access to the ```FacilityType``` object(s) that a specific ```Facility``` object is associated with. Effectively, with this line, we can query a facility's facility_type.
-    - The ```lazy=True``` parameter indicates that the associated ```FacilityType``` object(s) should be loaded in the same query that loads the ```Facility``` object(s) which can reduce the number of queries required to get certain information.
+    defines a one-one relationship between the ```FacilityType``` model and the ```Facility``` model. 
+        >
+        It creates a backref ```facility_types``` in the ```Facility``` model which allows access to the ```FacilityType``` object(s) that a specific ```Facility``` object is associated with. Effectively, with this line, we can query a facility's facility_type.
+        >
+        The ```lazy=True``` parameter indicates that the associated ```FacilityType``` object(s) should be loaded in the same query that loads the ```Facility``` object(s) which can reduce the number of queries required to get certain information.
     >
 - owners model
     - ```facilities = db.relationship('Facility', backref="facility_owners", cascade="all, delete-orphan")```
-    This line creates a one-many relationship between the ```Owner``` model and ```Facility``` model in the database using the ```db.relationship``` method. It specifies that each ```Owner``` can have multiple ```Facility``` objects associated with it, and each ```Facility``` object belongs to only one ```Owner```. The backreference helps to access the ```Owner``` objects associated with a given ```Facility```.
-    - The cascade argument specifies that when an ```Owner``` object is deleted, all of the associated ```Facility``` objects should be deleted as well (delete-orphan). This ensures that there are no orphaned ```Facility``` objects in the database. This was an important parameter to include as this is way I wanted to design the database - no Facility could exist without an Owner to avoid stale data.
+        >
+         It specifies that each ```Owner``` can have multiple ```Facility``` objects associated with it, and each ```Facility``` object belongs to only one ```Owner```. 
+         >
+         The backreference helps to access the ```Owner``` objects associated with a given ```Facility```.
+        >
+        The cascade argument specifies that when an ```Owner``` object is deleted, all of the associated ```Facility``` objects should be deleted as well (delete-orphan). This ensures that there are no orphaned ```Facility``` objects in the database. This was an important parameter to include as this is way I wanted to design the database - no Facility could exist without an Owner to avoid stale data.
+>
 - post_codes model
     - ```addresses = db.relationship('Address', backref='address_post_codes')```
-    This creates a one-to-many relationship between ```Address``` and ```PostCode```, where a single post code can be associated with multiple addresses. The backreference allows us to access ```PostCode``` object associated with an ```Address``` via ```address_post_codes```.
+        >
+        This creates a one-to-many relationship between ```Address``` and ```PostCode```, where a single post code can be associated with multiple addresses. The backreference allows us to access ```PostCode``` object associated with an ```Address``` via ```address_post_codes```.
+    >
     - Post codes were not included in the address table as an attribute to avoid data redundancy and to further maintain third normalized form. Since multiple addresses could share the same post_code, it was best to move post_codes to its own table and associate the two entities via a foreign key.
+>
 - promotions model
-    - ```python
-        # Add the foreign keys in the Promotions model
-        facility_id = db.Column(db.Integer, db.ForeignKey("facilities.id"), nullable=False) 
-        # Add the relationships directions to other models
-        facility = db.relationship('Facility', backref='facility_promotions')
-        ```
-        These two lines define a many-to-one relationship between the ```Promotion``` and the ```Facility``` model. The first line defines the foreign key column called ```facility_id``` which is present in the ```Promotions``` table. This is in order to reference which ```Facility``` is linked to which ```Promotion``` via unique identifier.
-    - The backref argument creates a ```facility_promotions``` attribute in the ```Facility``` model that is a query object for all promotions associated with that facility.
+>
+```python
+# Add the foreign keys in the Promotions model
+facility_id = db.Column(db.Integer, db.ForeignKey("facilities.id"), nullable=False) 
+# Add the relationships directions to other models
+facility = db.relationship('Facility', backref='facility_promotions')
+```
+>
+These two lines define a many-to-one relationship between the ```Promotion``` and the ```Facility``` model. The first line defines the foreign key column called ```facility_id``` which is present in the ```Promotions``` table. This is in order to reference which ```Facility``` is linked to which ```Promotion``` via unique identifier.
+>
+The backref argument creates a ```facility_promotions``` attribute in the ```Facility``` model that is a query object for all promotions associated with that facility.
 
 
 ## 9. Database Relations:
 The FitnessFinder API intends to implement its database relations based off the project's preliminary entity relationship diagram. 
 
-The relations can be elaborated as follows:
+The relations can be elaborated on as follows:
 
-*Facilities* can be only one ```facility_type```. They can also run 0 to multiple promotions (optional). A facility can have many *amenities* as shown thru the join table ```facility_amenities```. A facility can have only one address.
-
-*Facility_types* can be attributed to 0 or many ```facilities```. Facility types has the option to have 0 facilities as this is a prepopulated attribute in the database, in which is not required to have any facilities linked to at time of seeding.
-
-*Promotions* can be run at one facility (if the facility is independent) however if the facility is a chain, the promotion can be held across their multiple locations.
-
-*Amenities* has a many-to-many relationship with *facilities*, meaning many amenities can be present at many facilities - this relationship is defined thru the join table ```facility_amenities```.
-
-*Addresses* has a one-to-one relationship with ```facilities``` as only one address can be attributed to one facility location. ```Addresses``` has a one-to-one relationship with ```post_codes``` as an address can only have one ```post_code```.
-
-*Post_codes* has an atleast-one-to-one relationship with ```addresses```. A postcode can have multiple addresses within that post_code, and an address must only have one ```post_code```. The relationship is atleast-one from post_codes because there will always be atleast one address with that specific post_code if the address is entered into the database.
+- *Facilities* 
+can be only one ```facility_type```. They can also run 0 to multiple *promotions* (optional). A facility can have many *amenities* as shown thru the join table ```facility_amenities```. A facility can have only one *address*.
+>
+- *Facility_types* 
+can be attributed to 0 or many ```facilities```. Facility types has the option to have 0 facilities as this is a prepopulated attribute in the database, in which is not required to have any facilities linked to at time of seeding.
+>
+- *Promotions* 
+can be run at one facility (if the facility is independent) however if the facility is a chain, the promotion can be held across their multiple locations.
+>
+- *Amenities* 
+has a many-to-many relationship with *facilities*, meaning many amenities can be present at many facilities - this relationship is defined thru the join table ```facility_amenities```. There is no associated model to the ```facility_amenities ``` table.
+>
+- *Addresses* 
+has a one-to-one relationship with ```facilities``` as only one address can be attributed to one facility location. ```Addresses``` has a one-to-one relationship with ```post_codes``` as an address can only have one ```post_code```.
+>
+- *Post_codes* 
+has an atleast-one-to-one relationship with ```addresses```. A postcode can have multiple addresses within that ```post_code```. The relationship is atleast-one from post_codes because there will always be atleast one address with that specific post_code if the address is entered into the database. 
+    >
+    ```Post_codes``` was moved to a separate table to maintain data integrity and reduce redundancy. By separating post_codes, addresses are able to link accordingly via fkey rather than having repeat *post_codes* in the *addresses* table.
 
 ## 10. Project Management
 ### Development
@@ -476,13 +587,17 @@ Upon further dissection of what I wanted to achieve and in order to ensure an ad
 >
 ![final_ERD](/docs/final_erd.png)
 >
-Between the second ERD and the final ERD, there was duplication with post_codes as a foreign key in the ```facilities``` table - there waas also an entity relation to match however this was removed prior to the image capture. 
+Between the second ERD and the final ERD, there was duplication with post_codes as a foreign key in the ```facilities``` table - there was also an entity relation to match however this was removed prior to the image capture. Additionally, in the ```facilities``` table, ```hours_of_op``` was split into two values (```opening_time``` and ```closing_time```) to allow for easier and more accurate time comparisons and querying of opening hours.
+>
+```promotions``` had a name attribute added, so that owners could specify the title of their promotion.
+>
+```facility_amenities``` had a column added ```has_amenity``` to enforce the boolean type of the amenities, as well as just to make it more clear in the database what the ids are representing.
 >
 The ```addresses``` table was also filled out appropriately with relevant attributes to ensure more specificity upon data entries which in turn allows for more precise filtering options.
 >
-Lastly, a space for ```owners``` to input their mobile number in case of a 2-factor authentication being released in future api updates.
+Lastly, a space for ```owners``` to input their mobile number as well as name in case of a 2-factor authentication being released in future api updates.
 >
-### Planning
+### 10. Planning
 To better assist me in my project planning, I chose to use **Trello** to manage my tasks. The below is the beginning trello board that I started with.
 >
 ![project_start](/docs/trello_board1.png)
@@ -505,6 +620,8 @@ Secure endpoints:
 Public endpoints:
 ![project_pub_endpts](/docs/trello_public_endps.png)
 >
+Please see my progress tracking below:
+>
 Progress as of March 8
 ![project_mid](/docs/trello_board3.png)
 >
@@ -513,12 +630,17 @@ Progress as of March 10
 >
 Progress as of March 13
 ![project_mid](/docs/trello_board5.png)
-
-
-
-
-
-## Sources
+>
+Progress as of March 18
+![project_end](/docs/trello_board6.png)
+>
+Progress as of March 19
+![project_end](/docs/trello_board7.png)
+>
+Towards the end of the project, my progress slowed down as certain things took more time to figure out how to get working exactly as I wanted to. I found a lot of times tweaking little things here and there required great focus, as you'd have to migrate the changes in multiple locations. However, if the alteration did not go as planned, the code tended to be more mangled than desired. I also was not able to give error handling as much time as I would have liked however I think it handles well for a first-iteration api rollout.
+>
+>
+### Sources
 [^1]: EDUCBA. (2020). What is ORM? | How ORM Works? | A Quick Glance of ORM Features. [online] Available at: https://www.educba.com/what-is-orm/.
 
 
@@ -542,4 +664,22 @@ Progress as of March 13
 
 
 [^8]: midnite.uk. (n.d.). The pros and cons of Object Relational Mapping (ORM). [online] Available at: https://midnite.uk/blog/the-pros-and-cons-of-object-relational-mapping-orm#:~:text=ORMs%20can%20drastically%20improve%20development.
+
+
+[^9]: www.digitalocean.com. (n.d.). How to Use Flask-SQLAlchemy to Interact with Databases in a Flask Application | DigitalOcean. [online] Available at: https://www.digitalocean.com/community/tutorials/how-to-use-flask-sqlalchemy-to-interact-with-databases-in-a-flask-application.
+
+
+[^10]: www.sqlalchemy.org. (n.d.). Philosophy - SQLAlchemy. [online] Available at: https://www.sqlalchemy.org/philosophy.html [Accessed 19 Mar. 2023].
+
+
+[^11]: EDUCBA. (2021). Flask bcrypt | How bcrypt Works in Flask | Examples. [online] Available at: https://www.educba.com/flask-bcrypt/ [Accessed 19 Mar. 2023].
+
+
+[^12]: PyPI. (2020). flask-marshmallow. [online] Available at: https://pypi.org/project/flask-marshmallow/#:~:text=Flask%2DMarshmallow%20is%20a%20thin [Accessed 19 Mar. 2023].
+
+
+[^13]: flask-marshmallow.readthedocs.io. (n.d.). Flask-Marshmallow: Flask + marshmallow for beautiful APIs — Flask-Marshmallow 0.14.0 documentation. [online] Available at: https://flask-marshmallow.readthedocs.io/en/latest/.
+
+
+[^14]: GeeksforGeeks. (2022). Introduction to Psycopg2 module in Python. [online] Available at: https://www.geeksforgeeks.org/introduction-to-psycopg2-module-in-python/ [Accessed 19 Mar. 2023].
 
