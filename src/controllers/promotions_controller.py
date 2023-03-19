@@ -1,11 +1,10 @@
 from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from marshmallow import ValidationError, EXCLUDE
+from marshmallow import ValidationError
 from app import db
 from utilities import *
-from models.facilities import Facility
 from models.promotions import Promotion
-from schemas.promotions_schema import promotion_schema, promotions_schema
+from schemas.promotions_schema import promotion_schema
 
 
 promotions = Blueprint('promotions', __name__, url_prefix='/promotions')
@@ -22,31 +21,41 @@ def create_promotion(facility_id):
     if access_check:
         return access_check
 
-    # Deserialize the request data using PromotionSchema
+    # deserialize the request data using PromotionSchema
     # promotion_fields = promotion_schema.load(request.json)
     promotion_fields = promotion_schema.load(request.json)
 
     try:
-        # Validate the dates using the `validate_dates` method in the schema
+        # validate the dates using the `validate_dates` method in the schema
         promotion_schema.validate(promotion_fields)
     except ValidationError as e:
         return jsonify(e.messages), 400
 
-    # Set the facility_id to the provided facility_id
+    # check if there is an existing promotion with the same name and facility_id
+    existing_promotion = Promotion.query.filter_by(
+        name=promotion_fields['name'],
+        facility_id=facility_id
+    ).first()
+
+    if existing_promotion is not None:
+        # promotion with the same name and facility_id already exists
+        return jsonify({'error': 'Promotion with this name already exists for this facility'}), 409
+
+    # set the facility_id to the provided facility_id
     promotion_fields["facility_id"] = facility_id
 
-    # Create a new Promotion object with the deserialized data
+    # create a new Promotion object with the deserialized data
     promotion = Promotion(**promotion_fields)
 
-    # Add the new Promotion object to the database and commit the transaction
+    # add the new Promotion object to the database and commit the transaction
     db.session.add(promotion)
     db.session.commit()
 
-    # Serialize the new Promotion object using PromotionSchema
+    # serialize the new Promotion object using PromotionSchema
     result = promotion_schema.dump(promotion)
 
-    # Return the serialized new Promotion object
-    return jsonify(result), 201
+    # return the serialized new Promotion object
+    return jsonify(result,{'message': 'Promotion added successfully!'}), 201
 
 
 
@@ -78,7 +87,8 @@ def update_facility_promotion(facility_id, promotion_id):
 
     db.session.commit()
     result = promotion_schema.dump(promotion)
-    return jsonify(result)
+    return jsonify(result, ({'message': 'Promotion updated successfully'}))
+
 
 
 
@@ -90,7 +100,7 @@ def delete_promotion(promotion_id):
     owner_id = get_jwt_identity()
 
     promotion = Promotion.query.get(promotion_id)
-    
+
     # verify access
     access_check = verify_owner_access(promotion.facility_id, owner_id)
     if access_check:

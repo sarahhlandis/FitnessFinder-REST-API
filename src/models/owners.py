@@ -1,7 +1,4 @@
-from app import bcrypt
 from app import db
-from sqlalchemy.orm import validates
-from werkzeug.security import check_password_hash, generate_password_hash
 
 class Owner(db.Model):
     # define the table name for the db

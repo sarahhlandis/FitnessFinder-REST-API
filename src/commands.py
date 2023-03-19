@@ -147,10 +147,6 @@ def seed_db():
         )
         db.session.add(post_code1)
 
-        # post_code2=PostCode(
-        #     post_code="2000"
-        # )
-        # db.session.add(post_code2)
 
         post_code3=PostCode(
             post_code="2481"
@@ -167,10 +163,6 @@ def seed_db():
         )
         db.session.add(post_code5)
 
-        post_code6=PostCode(
-            post_code="2481"
-        )
-        db.session.add(post_code6)
 
         # commit all post_code entries to database
         db.session.commit()
@@ -228,7 +220,7 @@ def seed_db():
             street="Browning Street",
             suburb="Byron Bay",
             state="NSW",
-            post_code_id=post_code6.id
+            post_code_id=post_code3.id
         )
         db.session.add(address6)
 
@@ -450,6 +442,12 @@ def seed_db():
         facility5.owner = owner5
         facility5.address = address5
         facility5.post_code = post_code5
+
+        # associate objects with each other
+        facility6.owner = owner6
+        facility6.address = address6
+        facility6.post_code = post_code3
+        facility6.promotions.append(promotion3)
 
         # associate objects with each other
         facility7.owner = owner4

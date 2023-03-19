@@ -1,5 +1,4 @@
 from app import ma
-from marshmallow import fields
 
 class AmenitySchema(ma.Schema):
     class Meta:

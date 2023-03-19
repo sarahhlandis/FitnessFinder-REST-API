@@ -7,6 +7,9 @@ from models.owners import Owner
 
 # check owner verification respective to owner details and facility access
 def verify_owner_access(facility_ids, owner_id):
+    if isinstance(facility_ids, int):
+        facility_ids = [facility_ids]
+        
     for facility_id in facility_ids:
         # retrieve the facility from the database
         facility = Facility.query.filter_by(id=facility_id).first()

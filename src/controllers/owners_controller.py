@@ -1,13 +1,11 @@
 from flask import jsonify, request, redirect, url_for, Blueprint, abort
 from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 from app import db, bcrypt
-from sqlalchemy import text
 from marshmallow import fields
 from utilities import *
 from datetime import timedelta
 from models.owners import Owner
-from models.facilities import Facility, facility_amenities
-from schemas.owners_schema import owner_schema, owners_schema
+from schemas.owners_schema import owner_schema
 
 
 auth = Blueprint('auth', __name__, url_prefix="/login")

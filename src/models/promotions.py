@@ -1,4 +1,3 @@
-from datetime import date
 from app import db
 
 class Promotion(db.Model):

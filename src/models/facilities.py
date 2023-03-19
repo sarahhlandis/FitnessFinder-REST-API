@@ -1,5 +1,3 @@
-from datetime import time
-from models.facility_types import FacilityType
 from app import db
 
 

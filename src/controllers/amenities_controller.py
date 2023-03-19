@@ -1,6 +1,7 @@
 from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
+from sqlalchemy import text, Table, delete, insert, select
 from models.facilities import Facility, facility_amenities
 from models.amenities import Amenity
 from schemas.facilities_schema import facilities_schema, facility_schema
@@ -40,7 +41,7 @@ def get_facility_amenities(facility_id):
 
 # 2
 # add/remove (update) amenities for a specific facility by a logged-in owner
-@facility_amens.route('/<int:facility_id>/amenities/secure', methods=['PUT'])
+@facility_amens.route('/<int:facility_id>/amenities/secure', methods=['PUT', 'DELETE'])
 @jwt_required()
 def update_facility_amenities(facility_id):
     owner_id = get_jwt_identity()
@@ -52,64 +53,52 @@ def update_facility_amenities(facility_id):
     
     facility = Facility.query.get_or_404(facility_id)
 
-    # get the amenities selected by the owner
-    selected_amenities = request.json.get('amenities', [])
+    if request.method == 'DELETE':
+        # remove selected amenities from facility_amenities table
+        selected_amenities = request.json.get('amenities', [])
 
-    # remove all current amenities associated with the facility
-    for facility_amenity in facility.amenities:
-        db.session.delete(facility_amenity)
+        if selected_amenities:
+            facility_amenities_table = Table('facility_amenities', db.metadata, autoload=True, autoload_with=db.engine)
 
-    # add selected amenities to facility_amenities table
-    for amenity_name in selected_amenities:
-        amenity = Amenity.query.filter_by(name=amenity_name).first()
-        if amenity:
-            facility_amenity = facility_amenities(facility_id=facility.id, amenity_id=amenity.id, has_amenity=True)
-            db.session.add(facility_amenity)
+            for amenity_name in selected_amenities:
+                amenity = Amenity.query.filter_by(name=amenity_name).first()
+                if amenity:
+                    db.session.execute(delete(facility_amenities_table).where(facility_amenities_table.c.facility_id == facility.id).where(facility_amenities_table.c.amenity_id == amenity.id))
 
-    db.session.commit()
+        db.session.commit()
 
-    result = facility_schema.dump(facility)
-    return jsonify(result)
+        result = facility_schema.dump(facility)
+        return jsonify(result, {'message': 'Amenities removed successfully!'})
+
+    elif request.method == 'PUT':
+        # add selected amenities to facility_amenities table
+        selected_amenities = request.json.get('amenities', [])
+
+        if selected_amenities:
+            facility_amenities_table = Table('facility_amenities', db.metadata, autoload=True, autoload_with=db.engine)
+
+            # remove all current amenities associated with the facility
+            db.session.execute(delete(facility_amenities_table).where(facility_amenities_table.c.facility_id == facility.id))
+
+            # add selected amenities
+            amenities_to_add = []
+            for amenity_name in selected_amenities:
+                amenity = Amenity.query.filter_by(name=amenity_name).first()
+                if amenity:
+                    amenities_to_add.append({'facility_id': facility.id, 'amenity_id': amenity.id, 'has_amenity': True})
+            
+            if amenities_to_add:
+                db.session.execute(insert(facility_amenities_table), amenities_to_add)
+
+        db.session.commit()
+
+        result = facility_schema.dump(facility)
+        return jsonify(result, {'message': 'Amenities added successfully!'})
 
 
 
 
 # 3
-# delete selected amenities from a specific facility by a logged-in owner
-@facility_amens.route('/<int:facility_id>/amenities/secure', methods=['DELETE'])
-@jwt_required()
-def delete_facility_amenities(facility_id):
-    owner_id = get_jwt_identity()
-
-    # verify that the owner_id in the request matches the owner_id of the facility being updated
-    access_error = verify_owner_access(facility_id, owner_id)
-    if access_error:
-        return access_error
-    
-    facility = Facility.query.get_or_404(facility_id)
-
-    # get the amenities selected by the owner
-    selected_amenities = request.json.get('amenities', [])
-
-    # remove the selected amenities from the facility_amenities table
-    for amenity_name in selected_amenities:
-        amenity = Amenity.query.filter_by(name=amenity_name).first()
-        if amenity and amenity in facility.amenities:
-            # remove the FacilityAmenities object from the database
-            facility_amenity = facility_amenities.query.filter_by(facility_id=facility_id, amenity_id=amenity.id).first()
-            db.session.delete(facility_amenity)
-            # remove the amenity from the list of amenities associated with the facility
-            facility.amenities.remove(amenity)
-
-    db.session.commit()
-
-    result = facility_schema.dump(facility)
-    return jsonify(result)
-
-
-
-
-# 4
 # retrieve all amenities and their id assignments
 @amenities.route('/all_amenities', methods=['GET'])
 def get_amenities():

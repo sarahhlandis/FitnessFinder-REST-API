@@ -1,6 +1,5 @@
 from app import ma, db
 from models.post_codes import PostCode
-from schemas.post_codes_schema import PostCodeSchema
 from marshmallow import fields, validates_schema, validate, ValidationError
 
 
@@ -15,7 +14,8 @@ class AddressSchema(ma.Schema):
     street_num = fields.String(validate=validate.Regexp('^\d+$'), required=True)
     state = fields.String(required=True, validate=validate.Length(equal=3))
     # post_code = fields.Nested("PostCodeSchema", only=["id"])
-    post_code = ma.Nested(PostCodeSchema)
+    # post_code = ma.Nested(PostCodeSchema)
+    post_code = fields.String(required=True)
 
     # validates the state is formatted correctly
     @validates_schema

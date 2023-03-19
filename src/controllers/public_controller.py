@@ -1,18 +1,15 @@
 from flask import jsonify, Blueprint
+from sqlalchemy import and_
+from datetime import datetime
+from app import db
 from models.facilities import Facility
-from schemas.facilities_schema import facilities_schema
-# from models.facility_amenities import FacilityAmenity
 from models.facility_types import FacilityType
 from models.promotions import Promotion
 from models.amenities import Amenity
 from models.addresses import Address
 from models.post_codes import PostCode
-from models.facilities import facility_amenities
-from sqlalchemy import cast, String, text, and_
-from sqlalchemy.orm import joinedload, subqueryload
-from sqlalchemy.sql import exists
-from datetime import datetime
-from app import db
+from schemas.facilities_schema import facilities_schema
+
 
 public = Blueprint('public', __name__, url_prefix='/public')
 
@@ -53,8 +50,7 @@ def get_facilities_by_type(facility_type):
 
 
 
-# THIS RETURNS ANY FACILITIES THAT HAVE ATLEAST 1 OF SPECIFIED AMENS. 
-# CHECK FUNCTIONALITY AND/OR
+
 # 4
 # query facilities based on an amenity list
 # returns all facilities that have the specified amenities
@@ -85,8 +81,7 @@ def facilities_hours(opening_time, closing_time):
 
 
 
-# THIS RETURNS IF EITHER TIME IS WITHIN BOUNDS. 
-# CHECK OVER DESIRED FUNCTIONALITY AND VS OR
+
 # 6
 # query all facilities of a specific type that are open for certain hours
 @public.route('/facilities/<string:facility_type>/hours/<string:opening_time>/<string:closing_time>', methods=['GET'])
@@ -129,7 +124,7 @@ def local_facilities_with_amenities(post_code, amenity_ids):
 def local_with_promotions(post_code):
     # Query facilities with matching postcode and active promotions
     facilities = Facility.query \
-        .join(Facility.address) \
+        .join(Address) \
         .join(Facility.promotions) \
         .filter(Address.post_code.has(post_code=post_code), Promotion.start_date <= datetime.now(), Promotion.end_date >= datetime.now()) \
         .all()

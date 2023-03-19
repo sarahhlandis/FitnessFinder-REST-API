@@ -2,7 +2,6 @@ from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import ValidationError
 from models.facilities import Facility
-
 from schemas.facilities_schema import facilities_schema, facility_schema
 from schemas.addresses_schema import address_schema
 from schemas.post_codes_schema import postcode_schema

@@ -2,9 +2,6 @@ from marshmallow import fields, validates_schema, validate, ValidationError
 from marshmallow.fields import Length
 from app import ma
 from datetime import time
-from schemas.amenities_schema import AmenitySchema
-from schemas.facility_amenities_schema import FacilityAmenitySchema
-from schemas.facility_types_schema import FacilityTypeSchema
 from schemas.addresses_schema import AddressSchema
 
 class FacilitySchema(ma.Schema):
@@ -34,14 +31,13 @@ class FacilitySchema(ma.Schema):
    
     
 
-    @validates_schema
-    def validate_phone_num(self, data):
+    def validate_phone_num(self, data, **kwargs):
         if len(data['phone_num']) != 10:
             raise ValidationError('Phone number must be 10 digits long.')
         
 
     @validates_schema
-    def validate_opening_closing_times(self, data, partial=False):
+    def validate_opening_closing_times(self, data, **kwargs):
         opening_time = data.get('opening_time')
         closing_time = data.get('closing_time')
 
@@ -58,15 +54,8 @@ class FacilitySchema(ma.Schema):
             if opening_time >= closing_time:
                 raise ValidationError('Opening time must be before closing time.')
 
-            # check opening and closing times are valid
-            if opening_time != time(0, 0) or closing_time != time(24, 0):
-                # If the facility doesn't operate 24/7, check the times are between 00:00 and 23:59
-                if opening_time < time(0, 0) or opening_time >= time(24, 0):
-                    raise ValidationError('Opening time must be between 00:00 and 23:59.')
-                elif closing_time < time(0, 0) or closing_time >= time(24, 0):
-                    raise ValidationError('Closing time must be between 00:00 and 23:59.')
-        except ValueError:
-            raise ValidationError('Invalid format. Must be HH:MM')
+        except:
+            raise ValidationError("Incorrect time format.")
 
 
 facility_schema = FacilitySchema()

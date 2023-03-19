@@ -1,5 +1,4 @@
 from app import db
-from app import SQLAlchemy
 
 class FacilityType(db.Model):
     __tablename__ = "facility_types"
