@@ -134,6 +134,8 @@ def create_facility():
     for facility_type in facility_types:
         print(f"Facility Type ID: {facility_type.id} | Name: {facility_type.name}")
 
+
+
     # add facility type to facility object
     facility_type_id = request.json.get('facility_type_id')
     if facility_type_id:
@@ -144,7 +146,7 @@ def create_facility():
         facility.facility_type_id = facility_type_id
 
 
-    # # create new amenities for the facility
+    # create new amenities for the facility
     if 'amenities' in request.json:
         for amenity_data in request.json['amenities']:
             amenity_name = amenity_data.get('name')
