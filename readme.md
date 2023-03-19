@@ -107,6 +107,8 @@ registered blueprint:
     - *Route*: ```@facilities.route('/secure', methods=['POST'])```
     - *JSON Request Parameters*: 
     - *Expected Response*:
+    ![createfacility_route](/docs/facilitiesroute3.png)
+    ![createfacility_route](/docs/facilitiesroute3a.png)
 >
 - GET ```/secure```
     - *Functionality*: Retrieve a list of all facilities owned by a logged-in owner         

@@ -2,11 +2,12 @@ from flask import jsonify, request, Blueprint
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import db
 from schemas.facilities_schema import facility_schema, facilities_schema
-from schemas.facility_amenities_schema import facilityamenity_schema
+from schemas.facility_amenities_schema import FacilityAmenitySchema
 from schemas.promotions_schema import promotion_schema
 from schemas.addresses_schema import address_schema
-from models.facilities import Facility
+from models.facilities import Facility, facility_amenities
 from models.facility_types import FacilityType
+from models.amenities import Amenity
 from models.owners import Owner
 from models.promotions import Promotion
 from models.post_codes import PostCode
@@ -79,6 +80,21 @@ def create_facility():
     # deserialize the request data using FacilitySchema
     facility_fields = facility_schema.load(request.json)
 
+    # # check if facility with the same name already exists for owner
+    # existing_facility = Facility.query.filter_by(business_name=facility_fields['business_name'], owner_id=owner_id).first()
+    # if existing_facility:
+    #     return jsonify({'error': 'Facility with the same name already exists for this owner'}), 400
+    
+    # check if facility exists in the database using business name and phone number
+    existing_facility = Facility.query.filter(
+        Facility.business_name == facility_fields['business_name'],
+        Facility.phone_num == facility_fields['phone_num']
+    ).first()
+
+    if existing_facility:
+        return jsonify({'error': 'Facility already exists'}), 400
+    
+    # create new facility for owner
     facility = Facility()
 
     facility.business_name = facility_fields['business_name']
@@ -127,13 +143,16 @@ def create_facility():
             return jsonify({'error': 'Invalid facility type ID'}), 400
         facility.facility_type_id = facility_type_id
 
-    # create new amenities for the facility
+
+    # # create new amenities for the facility
     if 'amenities' in request.json:
         for amenity_data in request.json['amenities']:
-            facility_amenity_fields = facilityamenity_schema.load(amenity_data)
-            facility_amenity = Facility.facility_amenities(**facility_amenity_fields, facility_id=facility.id)
-            db.session.add(facility_amenity)
+            amenity_name = amenity_data.get('name')
+            if amenity_name:
+                amenity = Amenity(name=amenity_name)
+                facility.amenities.append(amenity)
         db.session.commit()
+
 
     # create new promotions for the facility
     if 'promotions' in request.json:
@@ -147,7 +166,7 @@ def create_facility():
     result = facility_schema.dump(facility)
 
     # return the serialized new Facility object
-    return jsonify(result), 201
+    return jsonify(result, {'message': 'Facility created successfully!'}), 201
 
 
 
