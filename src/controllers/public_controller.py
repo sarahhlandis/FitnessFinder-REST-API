@@ -107,8 +107,8 @@ def local_facilities_with_amenities(post_code, amenity_ids):
     # Query facilities with matching postcode and amenities
     facilities = Facility.query \
         .join(Facility.address) \
-        .join(Facility.facility_amenities) \
-        .filter(and_(Address.post_code.has(post_code=post_code), Facility.facility_amenities.any(Amenity.id.in_(amenity_ids_list)))) \
+        .join(Facility.amenities) \
+        .filter(and_(Address.post_code.has(post_code=post_code), Facility.amenities.any(Amenity.id.in_(amenity_ids_list)))) \
         .all()
     
     result = facilities_schema.dump(facilities)

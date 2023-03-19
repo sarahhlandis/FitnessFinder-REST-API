@@ -10,10 +10,10 @@ from models.facility_types import FacilityType
 from models.owners import Owner
 from models.promotions import Promotion
 from models.post_codes import PostCode
+from models.addresses import Address
 from utilities import *
 
 facilities = Blueprint('facilities', __name__, url_prefix="/facilities")
-# facility_amenities = Blueprint('facility_amenities', __name__, url_prefix='/facilities_amenities')
 
 # 1
 # retrieve a list of all facilities owned by logged-in owner
@@ -79,52 +79,36 @@ def create_facility():
     # deserialize the request data using FacilitySchema
     facility_fields = facility_schema.load(request.json)
 
+    facility = Facility()
+
     facility.business_name = facility_fields['business_name']
     facility.phone_num = facility_fields['phone_num']
     facility.opening_time = facility_fields['opening_time']
     facility.closing_time = facility_fields['closing_time']
-    facility.address = address_fields['address']
+    facility.independent = facility_fields['independent']
+    facility.facility_type = facility_fields['facility_type']
     facility.owner_id = owner_id
 
-    # deserialize the address field using AddressSchema
     address_fields = address_schema.load(request.json['address'])
-
     # check if a PostCode object with the provided postcode already exists
-    postcode_value = request.json['address']['post_code']
+    postcode_value = address_fields['post_code']
     post_code = PostCode.query.filter_by(post_code=str(postcode_value)).first()
     if post_code:
         # if it does, assign its id to the post_code_id field of the newly created Address object
-        address_fields['post_code_id'] = post_code.id
+        address_fields['post_code'] = post_code
     else:
         # if it doesn't, create a new PostCode object with the provided postcode value,
         # assign its id to the post_code_id field of the newly created Address object,
         # and add the new PostCode object to the database
-        post_code = PostCode(postcode=str(postcode_value['post_code']))
+        post_code = PostCode(post_code=str(postcode_value['post_code']))
         db.session.add(post_code)
         db.session.flush()  # this will generate the id for the new PostCode object
-        address_fields['post_code_id'] = post_code.id
-    # # check if a PostCode object with the provided postcode already exists
-    # postcode_value = request.json['address']['post_code']['postcode']
-    # post_code = PostCode.query.filter_by(postcode=postcode_value).first()
-    # if post_code:
-    #     # if it does, assign its id to the post_code_id field of the newly created Address object
-    #     address_fields['post_code_id'] = post_code.id
-    # else:
-    #     # if it doesn't, create a new PostCode object with the provided postcode value,
-    #     # assign its id to the post_code_id field of the newly created Address object,
-    #     # and add the new PostCode object to the database
-    #     post_code = PostCode(postcode=postcode_value)
-    #     db.session.add(post_code)
-    #     db.session.flush()  # this will generate the id for the new PostCode object
-    #     address_fields['post_code_id'] = post_code.id
+        address_fields['post_code'] = post_code
 
+    new_address = Address(**address_fields)
 
-    # merge the deserialized address fields into the facility fields
-    facility_fields['address'] = address_fields
-
-    # create a new Facility object with the deserialized data
-    facility = Facility(**facility_fields, owner_id=owner_id)
-
+    facility.address = new_address
+    
     # add the new Facility object to the database and commit the transaction
     db.session.add(facility)
     db.session.commit()

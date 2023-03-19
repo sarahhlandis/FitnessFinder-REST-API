@@ -15,6 +15,7 @@ addresses = Blueprint('addresses', __name__, url_prefix='/addresses')
 # an address cannot be deleted as it is mandatory for a facility. an address cannot be added
 # without having a post_code so no functionality required to add it at a later date
 
+
 # 1
 # update an address for a singular facility by a logged-in owner
 @addresses.route('/<int:facility_id>/secure', methods=['PUT'])

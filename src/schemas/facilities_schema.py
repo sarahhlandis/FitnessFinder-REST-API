@@ -9,7 +9,7 @@ class FacilitySchema(ma.Schema):
         ordered = True
         # Define the fields to expose
         fields = ("business_name", "independent", "phone_num", "opening_time", 
-                "closing_time", "address", "amenities", "promotions")
+                "closing_time", "address", "amenities", "promotions", "facility_type")
         
         load_only = ["owner_id","facility_type_id","address_id", "id"]
         

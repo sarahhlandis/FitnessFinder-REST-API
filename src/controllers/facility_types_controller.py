@@ -1,7 +1,7 @@
 from flask import jsonify, Blueprint
 from models.facility_types import FacilityType
 
-facilities = Blueprint('facilities', __name__, url_prefix="/facilities")
+facility_types = Blueprint('facility_types', __name__, url_prefix="/facility_types")
 
 
 # facility_types are prepopulated so there is no functionality for an owner to need to modify
@@ -10,7 +10,7 @@ facilities = Blueprint('facilities', __name__, url_prefix="/facilities")
 
 # 1
 # retrieve a list of all facility types and their id assignments
-@facilities.route('/facility_types', methods=['GET'])
+@facility_types.route('/', methods=['GET'])
 def get_facility_types():
     facility_types = FacilityType.query.all()
     facility_types_dict = {}

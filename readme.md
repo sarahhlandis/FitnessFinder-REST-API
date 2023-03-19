@@ -281,7 +281,7 @@ registered blueprint:
 >
 - GET ```/facility_types```
     - *Functionality*: Retrieve a list of all facility types and their id assignments (facility_type_id is required as a ```fkey``` in the facilities entity, so must be included at time of facility creation)
-    - *Route*: ```@facilities.route('/facility_types', methods=['GET'])```
+    - *Route*: ```@facility_types.route('/', methods=['GET'])```
     - *JSON Request Parameters*: None
     - *Expected Response*:
     ![facility_types_all](/docs/facility_typesroute1.png)
